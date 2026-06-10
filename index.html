@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GL Sync-in-Tap</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%23BCDFB9'/><text y='65' x='15' font-family='sans-serif' font-size='50' font-weight='bold' fill='%232c3e50'>GL</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%23BCDFB9'/><text y='65' x='15' font-family='sans-serif' font-size='50' font-weight='bold' fill='%232c3e50'>GL</text></svg>">
     <style>
         :root {
             --primary: #BCDFB9;
@@ -14,12 +16,14 @@
             --card-bg: rgba(40, 40, 48, 0.98);
             --text: #e2e2e2;
             --text-muted: #888;
-            --border: rgba(255,255,255,0.08);
-            --border-active: rgba(255,255,255,0.18);
-            --section-header-bg: rgba(255,255,255,0.04);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-active: rgba(255, 255, 255, 0.18);
+            --section-header-bg: rgba(255, 255, 255, 0.04);
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -44,7 +48,7 @@
             border-radius: 10px;
             width: 100%;
             max-width: 1200px;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
             overflow: hidden;
             border: 1px solid var(--border-active);
         }
@@ -55,39 +59,79 @@
             justify-content: space-between;
             align-items: center;
             padding: 0.6rem 1rem;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0, 0, 0, 0.3);
             border-bottom: 1px solid var(--border);
         }
 
-        .brand-block { display: flex; align-items: center; gap: 0.6rem; }
+        .brand-block {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
         .brand-logo {
-            width: 32px; height: 32px; border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
             background: var(--primary);
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 900; font-size: 0.85rem; color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.85rem;
+            color: #1a1a1a;
             letter-spacing: -1px;
         }
-        .brand-title { font-weight: 800; font-size: 1.1rem; color: #fff; margin: 0; line-height: 1; }
-        .brand-sub { font-size: 0.68rem; color: var(--text-muted); margin: 0; }
 
-        .header-actions { display: flex; gap: 6px; align-items: center; }
+        .brand-title {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #fff;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .brand-sub {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
 
         .layout-selector {
             display: flex;
             gap: 3px;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0, 0, 0, 0.4);
             padding: 3px;
             border-radius: 5px;
             border: 1px solid var(--border);
         }
+
         .layout-btn {
-            background: transparent; color: var(--text-muted);
-            font-size: 0.7rem; padding: 3px 9px;
-            border-radius: 3px; font-weight: 700; border: none;
-            cursor: pointer; transition: all 0.15s;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            padding: 3px 9px;
+            border-radius: 3px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
         }
-        .layout-btn.active { background: var(--primary); color: #111; }
-        .layout-btn:hover:not(.active) { color: var(--text); }
+
+        .layout-btn.active {
+            background: var(--primary);
+            color: #111;
+        }
+
+        .layout-btn:hover:not(.active) {
+            color: var(--text);
+        }
 
         /* ── Layout Grid ── */
         .main-layout {
@@ -113,12 +157,18 @@
             aspect-ratio: 16/9;
             border: 1px solid var(--border);
         }
-        video { width: 100%; height: 100%; display: block; }
+
+        video {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
 
         .timecode-overlay {
             position: absolute;
-            top: 10px; left: 10px;
-            background: rgba(0,0,0,0.88);
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.88);
             color: var(--primary);
             padding: 4px 12px;
             border-radius: 4px;
@@ -136,19 +186,47 @@
             gap: 6px;
             align-items: center;
         }
+
         .status-pill {
-            background: rgba(0,0,0,0.4);
+            background: rgba(0, 0, 0, 0.4);
             border: 1px solid var(--border);
             border-radius: 20px;
             padding: 3px 10px;
             font-size: 0.7rem;
             color: var(--text-muted);
-            display: flex; gap: 5px; align-items: center;
+            display: flex;
+            gap: 5px;
+            align-items: center;
         }
-        .status-pill.active { border-color: var(--primary); color: var(--primary); }
-        .status-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); }
-        .status-pill.active .dot { background: var(--primary); animation: pulse 1s infinite; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        .status-pill.active {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .status-pill .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        .status-pill.active .dot {
+            background: var(--primary);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.3
+            }
+        }
 
         /* ── Controls Side ── */
         .controls-side {
@@ -173,7 +251,10 @@
             background: var(--section-header-bg);
             transition: background 0.15s;
         }
-        .section-header:hover { background: rgba(255,255,255,0.07); }
+
+        .section-header:hover {
+            background: rgba(255, 255, 255, 0.07);
+        }
 
         .section-label {
             display: flex;
@@ -185,21 +266,36 @@
             letter-spacing: 0.08em;
             color: var(--text-muted);
         }
+
         .section-label .icon {
-            width: 22px; height: 22px;
-            background: rgba(255,255,255,0.06);
+            width: 22px;
+            height: 22px;
+            background: rgba(255, 255, 255, 0.06);
             border-radius: 4px;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 0.85rem;
         }
-        .section-open .section-label { color: var(--text); }
-        .section-open .section-label .icon { background: var(--primary); }
+
+        .section-open .section-label {
+            color: var(--text);
+        }
+
+        .section-open .section-label .icon {
+            background: var(--primary);
+        }
 
         .section-chevron {
-            font-size: 0.7rem; color: var(--text-muted);
+            font-size: 0.7rem;
+            color: var(--text-muted);
             transition: transform 0.2s;
         }
-        .section-open .section-chevron { transform: rotate(180deg); color: var(--primary); }
+
+        .section-open .section-chevron {
+            transform: rotate(180deg);
+            color: var(--primary);
+        }
 
         .section-badge {
             background: var(--accent);
@@ -217,18 +313,29 @@
             padding: 0.75rem 0.9rem;
             gap: 0.65rem;
             flex-direction: column;
-            background: rgba(0,0,0,0.15);
+            background: rgba(0, 0, 0, 0.15);
         }
-        .section-open .section-body { display: flex; }
+
+        .section-open .section-body {
+            display: flex;
+        }
 
         /* ── Form Controls ── */
         label.field-label {
-            font-weight: 700; font-size: 0.67rem; text-transform: uppercase;
-            letter-spacing: 0.06em; color: var(--text-muted); display: block;
+            font-weight: 700;
+            font-size: 0.67rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            display: block;
             margin-bottom: 3px;
         }
 
-        input[type="number"], input[type="file"], input[type="range"], select, input[type="text"] {
+        input[type="number"],
+        input[type="file"],
+        input[type="range"],
+        select,
+        input[type="text"] {
             background-color: rgba(15, 15, 18, 0.9);
             color: #fff;
             padding: 0.38rem 0.5rem;
@@ -238,14 +345,27 @@
             font-size: 0.82rem;
             width: 100%;
         }
-        input:focus, select:focus { outline: none; border-color: var(--primary); }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
 
         input[type="file"]::file-selector-button {
-            background-color: #3a3a44; color: #fff; border: none;
-            padding: 0.2rem 0.5rem; border-radius: 3px; cursor: pointer;
-            font-size: 0.72rem; margin-right: 6px;
+            background-color: #3a3a44;
+            color: #fff;
+            border: none;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.72rem;
+            margin-right: 6px;
         }
-        input[type="file"]::file-selector-button:hover { background-color: #4a4a54; }
+
+        input[type="file"]::file-selector-button:hover {
+            background-color: #4a4a54;
+        }
 
         .video-name-tag {
             display: none;
@@ -255,103 +375,263 @@
             padding: 4px 8px;
             font-size: 0.7rem;
             color: var(--primary);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* Buttons */
         .btn {
-            background: var(--primary); color: #111; font-weight: 700;
-            border: none; padding: 0.42rem 0.7rem; border-radius: 5px;
-            cursor: pointer; transition: all 0.15s; font-size: 0.82rem;
+            background: var(--primary);
+            color: #111;
+            font-weight: 700;
+            border: none;
+            padding: 0.42rem 0.7rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 0.82rem;
             width: 100%;
         }
-        .btn:hover { filter: brightness(1.1); }
-        .btn-accent { background: var(--accent); color: #fff; }
-        .btn-outline { background: transparent; border: 1px solid var(--border-active); color: var(--text); }
-        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
-        .btn-sm { padding: 0.25rem 0.55rem; font-size: 0.72rem; width: auto; }
-        .btn-danger { background: transparent; border: 1px solid #c87; color: #c87; }
-        .btn-danger:hover { background: rgba(200, 120, 100, 0.15); }
 
-        .btn-row { display: flex; gap: 6px; }
-        .btn-row .btn { flex: 1; }
+        .btn:hover {
+            filter: brightness(1.1);
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-active);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.55rem;
+            font-size: 0.72rem;
+            width: auto;
+        }
+
+        .btn-danger {
+            background: transparent;
+            border: 1px solid #c87;
+            color: #c87;
+        }
+
+        .btn-danger:hover {
+            background: rgba(200, 120, 100, 0.15);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-row .btn {
+            flex: 1;
+        }
 
         /* Stepper */
-        .stepper { display: flex; width: 100%; }
-        .stepper .btn { width: 32px; flex: none; padding: 0; border-radius: 0; background: #3a3a44; color: #fff; }
-        .stepper .btn:first-child { border-radius: 5px 0 0 5px; }
-        .stepper .btn:last-child { border-radius: 0 5px 5px 0; }
-        .stepper input { border-radius: 0; border-left: none; border-right: none; text-align: center; flex: 1; }
+        .stepper {
+            display: flex;
+            width: 100%;
+        }
+
+        .stepper .btn {
+            width: 32px;
+            flex: none;
+            padding: 0;
+            border-radius: 0;
+            background: #3a3a44;
+            color: #fff;
+        }
+
+        .stepper .btn:first-child {
+            border-radius: 5px 0 0 5px;
+        }
+
+        .stepper .btn:last-child {
+            border-radius: 0 5px 5px 0;
+        }
+
+        .stepper input {
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+            text-align: center;
+            flex: 1;
+        }
 
         /* Time signature */
-        .time-sig { display: flex; width: 100%; }
-        .time-sig input { border-radius: 5px 0 0 5px; text-align: center; flex: 1; }
+        .time-sig {
+            display: flex;
+            width: 100%;
+        }
+
+        .time-sig input {
+            border-radius: 5px 0 0 5px;
+            text-align: center;
+            flex: 1;
+        }
+
         .time-sig span {
-            background: rgba(255,255,255,0.05); padding: 0 6px;
-            display: flex; align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0 6px;
+            display: flex;
+            align-items: center;
             border-top: 1px solid var(--border-active);
             border-bottom: 1px solid var(--border-active);
-            color: var(--text-muted); font-size: 0.9rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
         }
-        .time-sig select { border-radius: 0 5px 5px 0; flex: 1; }
 
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+        .time-sig select {
+            border-radius: 0 5px 5px 0;
+            flex: 1;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+        }
 
         /* Mic monitor */
-        .mic-row { display: flex; align-items: center; gap: 8px; }
-        .mic-monitor {
-            flex: 1; height: 10px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 5px; overflow: hidden;
-            position: relative; border: 1px solid var(--border-active);
+        .mic-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .mic-level { height: 100%; width: 0%; background: var(--primary); border-radius: 5px; transition: width 0.05s; }
-        .mic-threshold-marker { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent); z-index: 2; }
+
+        .mic-monitor {
+            flex: 1;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border-active);
+        }
+
+        .mic-level {
+            height: 100%;
+            width: 0%;
+            background: var(--primary);
+            border-radius: 5px;
+            transition: width 0.05s;
+        }
+
+        .mic-threshold-marker {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: var(--accent);
+            z-index: 2;
+        }
 
         input[type="range"] {
             -webkit-appearance: none;
-            height: 4px; padding: 0;
-            background: rgba(255,255,255,0.1);
-            border-radius: 2px; border: none;
+            height: 4px;
+            padding: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            border: none;
         }
+
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 13px; height: 13px;
+            width: 13px;
+            height: 13px;
             border-radius: 50%;
-            background: var(--primary); cursor: pointer;
+            background: var(--primary);
+            cursor: pointer;
         }
 
         /* Sync toggle */
         .sync-toggle {
-            display: flex; align-items: center; justify-content: space-between;
-            background: rgba(0,0,0,0.3); border-radius: 5px; padding: 6px 10px;
-            border: 1px solid var(--border-active); cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            padding: 6px 10px;
+            border: 1px solid var(--border-active);
+            cursor: pointer;
         }
-        .sync-toggle-label { font-size: 0.78rem; color: var(--text-muted); }
+
+        .sync-toggle-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
         .toggle-switch {
-            width: 34px; height: 18px; border-radius: 9px;
-            background: #333; position: relative; transition: background 0.2s;
+            width: 34px;
+            height: 18px;
+            border-radius: 9px;
+            background: #333;
+            position: relative;
+            transition: background 0.2s;
         }
-        .toggle-switch.on { background: var(--primary); }
+
+        .toggle-switch.on {
+            background: var(--primary);
+        }
+
         .toggle-knob {
-            position: absolute; top: 2px; left: 2px;
-            width: 14px; height: 14px; border-radius: 50%;
-            background: #888; transition: all 0.2s;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #888;
+            transition: all 0.2s;
         }
-        .toggle-switch.on .toggle-knob { left: 18px; background: #111; }
+
+        .toggle-switch.on .toggle-knob {
+            left: 18px;
+            background: #111;
+        }
 
         /* ── Markers ── */
         .marker-list {
-            display: flex; flex-direction: column; gap: 4px;
-            max-height: 180px; overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 180px;
+            overflow-y: auto;
         }
-        .marker-list::-webkit-scrollbar { width: 4px; }
-        .marker-list::-webkit-scrollbar-track { background: transparent; }
-        .marker-list::-webkit-scrollbar-thumb { background: var(--border-active); border-radius: 2px; }
+
+        .marker-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .marker-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .marker-list::-webkit-scrollbar-thumb {
+            background: var(--border-active);
+            border-radius: 2px;
+        }
 
         .marker-item {
-            background: rgba(0,0,0,0.25);
+            background: rgba(0, 0, 0, 0.25);
             border: 1px solid var(--border-active);
             border-radius: 5px;
             padding: 5px 7px;
@@ -360,415 +640,517 @@
             gap: 5px;
             align-items: center;
         }
-        .marker-item:hover { border-color: rgba(188, 223, 185, 0.2); }
-        .marker-times { display: flex; flex-direction: column; gap: 1px; }
-        .marker-abs { color: var(--text-muted); font-family: monospace; font-size: 0.62rem; text-align: center; }
-        .marker-input {
-            background: transparent !important; border: none !important;
-            border-bottom: 1px dashed rgba(255,255,255,0.1) !important;
-            padding: 2px 4px !important; color: #fff !important;
-            font-size: 0.78rem !important; border-radius: 0 !important;
+
+        .marker-item:hover {
+            border-color: rgba(188, 223, 185, 0.2);
         }
-        .marker-time-input { color: var(--primary) !important; font-weight: bold; font-family: monospace; text-align: center; }
-        .marker-input:focus { border-bottom-color: var(--primary) !important; outline: none; }
+
+        .marker-times {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .marker-abs {
+            color: var(--text-muted);
+            font-family: monospace;
+            font-size: 0.62rem;
+            text-align: center;
+        }
+
+        .marker-input {
+            background: transparent !important;
+            border: none !important;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1) !important;
+            padding: 2px 4px !important;
+            color: #fff !important;
+            font-size: 0.78rem !important;
+            border-radius: 0 !important;
+        }
+
+        .marker-time-input {
+            color: var(--primary) !important;
+            font-weight: bold;
+            font-family: monospace;
+            text-align: center;
+        }
+
+        .marker-input:focus {
+            border-bottom-color: var(--primary) !important;
+            outline: none;
+        }
 
         .empty-state {
-            color: var(--text-muted); font-size: 0.75rem;
-            text-align: center; padding: 12px 0; font-style: italic;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-align: center;
+            padding: 12px 0;
+            font-style: italic;
         }
 
         /* ── Projects ── */
         .projects-grid {
-            display: flex; gap: 8px;
-            overflow-x: auto; padding-bottom: 4px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
         }
-        .projects-grid::-webkit-scrollbar { height: 3px; }
-        .projects-grid::-webkit-scrollbar-thumb { background: var(--border-active); }
+
+        .projects-grid::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        .projects-grid::-webkit-scrollbar-thumb {
+            background: var(--border-active);
+        }
 
         .project-card {
-            min-width: 110px; max-width: 110px;
-            background: rgba(0,0,0,0.4); border: 1px solid var(--border-active);
-            border-radius: 5px; overflow: hidden; cursor: pointer;
-            font-size: 0.72rem; transition: border-color 0.15s;
+            min-width: 110px;
+            max-width: 110px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-active);
+            border-radius: 5px;
+            overflow: hidden;
+            cursor: pointer;
+            font-size: 0.72rem;
+            transition: border-color 0.15s;
         }
-        .project-card:hover { border-color: rgba(188, 223, 185, 0.35); }
-        .project-thumb { width: 100%; height: 56px; background-size: cover; background-position: center; position: relative; }
+
+        .project-card:hover {
+            border-color: rgba(188, 223, 185, 0.35);
+        }
+
+        .project-thumb {
+            width: 100%;
+            height: 56px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
         .project-dur {
-            position: absolute; bottom: 3px; right: 3px;
-            background: rgba(0,0,0,0.85); padding: 1px 5px;
-            font-size: 0.62rem; font-family: monospace; border-radius: 2px; color: #fff;
+            position: absolute;
+            bottom: 3px;
+            right: 3px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 1px 5px;
+            font-size: 0.62rem;
+            font-family: monospace;
+            border-radius: 2px;
+            color: #fff;
         }
-        .project-info { padding: 5px 6px; }
-        .project-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--text); }
-        .project-bpm { color: var(--text-muted); font-size: 0.65rem; margin-top: 1px; }
+
+        .project-info {
+            padding: 5px 6px;
+        }
+
+        .project-title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .project-bpm {
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            margin-top: 1px;
+        }
 
         /* ── Bottom bar (frame controls) ── */
-        .frame-controls { display: flex; gap: 6px; }
-        .frame-controls .btn { flex: 1; }
+        .frame-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .frame-controls .btn {
+            flex: 1;
+        }
 
         /* ── Responsive / Layout Modes ── */
-        .layout-vertical { max-width: 360px; }
-        .layout-vertical .main-layout { grid-template-columns: 1fr; }
-        .layout-vertical .video-side { border-right: none; border-bottom: 1px solid var(--border); }
-        .layout-vertical .brand-sub { display: none; }
+        .layout-vertical {
+            max-width: 360px;
+        }
 
-        .layout-horizontal { max-width: 100%; }
-        .layout-horizontal .main-layout { grid-template-columns: minmax(200px, 320px) 1fr; }
+        .layout-vertical .main-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .layout-vertical .video-side {
+            border-right: none;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .layout-vertical .brand-sub {
+            display: none;
+        }
+
+
 
         @media (max-width: 800px) {
-            .main-layout { grid-template-columns: 1fr !important; }
-            .video-side { border-right: none; border-bottom: 1px solid var(--border); }
+            .main-layout {
+                grid-template-columns: 1fr !important;
+            }
+
+            .video-side {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
         }
 
-        .controls-side { overflow-y: auto; max-height: calc(100vh - 100px); }
-        .controls-side::-webkit-scrollbar { width: 4px; }
-        .controls-side::-webkit-scrollbar-thumb { background: var(--border-active); }
+        .controls-side {
+            overflow-y: auto;
+            max-height: calc(100vh - 100px);
+        }
+
+        .controls-side::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .controls-side::-webkit-scrollbar-thumb {
+            background: var(--border-active);
+        }
     </style>
 </head>
+
 <body>
 
-<div class="app-wrapper layout-geral" id="appWrapper">
+    <div class="app-wrapper layout-geral" id="appWrapper">
 
-    <header class="app-header">
-        <div class="brand-block">
-            <div class="brand-logo">GL</div>
-            <div>
-                <p class="brand-title"><span style="color:var(--accent)">GL</span> Sync-in-Tap</p>
-                <p class="brand-sub">Sincronismo Otimizado de Partitura</p>
-            </div>
-        </div>
-        <div class="header-actions">
-            <div class="layout-selector">
-                <button class="layout-btn active" id="btn-geral" onclick="changeLayout('geral')">Geral</button>
-                <button class="layout-btn" id="btn-vertical" onclick="changeLayout('vertical')">Vertical</button>
-                <button class="layout-btn" id="btn-horizontal" onclick="changeLayout('horizontal')">Horizontal</button>
-            </div>
-        </div>
-    </header>
-
-    <div class="main-layout">
-
-        <div class="video-side">
-            <div class="video-wrapper">
-                <video id="videoPlayer" controls></video>
-                <div class="timecode-overlay">
-                    <span id="displayTimecode">1|1|1</span>
+        <header class="app-header">
+            <div class="brand-block">
+                <div class="brand-logo">GL</div>
+                <div>
+                    <p class="brand-title"><span style="color:var(--accent)">GL</span> Sync-in-Tap</p>
+                    <p class="brand-sub">Sincronismo Otimizado de Partitura</p>
                 </div>
             </div>
-
-            <div class="video-status">
-                <div class="status-pill" id="statusPill">
-                    <span class="dot"></span>
-                    <span id="statusText">Sem vídeo</span>
-                </div>
-                <div class="status-pill" id="micStatusPill" style="display:none;">
-                    <span class="dot"></span>
-                    <span id="micStatusText">Mic inativo</span>
+            
+            <div style="flex: 1; max-width: 260px; margin: 0 1rem;">
+                <input type="text" id="projectNameInput" value="Projeto GL" placeholder="Nome do Projeto" 
+                       style="background: rgba(0, 0, 0, 0.3); border: 1px dashed rgba(255, 255, 255, 0.15); color: #fff; font-size: 0.8rem; padding: 4px 10px; border-radius: 4px; text-align: center;" 
+                       title="Nome do Projeto (MusicXML)">
+            </div>
+            <div class="header-actions">
+                <div class="layout-selector">
+                    <button class="layout-btn active" id="btn-geral" onclick="changeLayout('geral')">Geral</button>
+                    <button class="layout-btn" id="btn-vertical" onclick="changeLayout('vertical')">Vertical</button>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <div class="controls-side">
+        <div class="main-layout">
 
-            <div class="section section-open" id="sec-arquivo">
-                <div class="section-header" onclick="toggleSection('arquivo')">
-                    <div class="section-label">
-                        <span class="icon">📁</span>
-                        Arquivo
+            <div class="video-side">
+                <div class="video-wrapper">
+                    <video id="videoPlayer" controls></video>
+                    <div class="timecode-overlay" style="display: flex; flex-direction: column; align-items: flex-start;">
+                        <span id="displayTimecode">1|1|1</span>
+                        <span id="displayAbsTimecode" style="font-size: 0.7rem; opacity: 0.75; font-weight: normal; margin-top: 2px; letter-spacing: 0.5px;">00:00:00</span>
                     </div>
-                    <span class="section-chevron">▲</span>
                 </div>
-                <div class="section-body">
-                    <div>
-                        <label class="field-label">Vídeo</label>
-                        <input type="file" id="videoUpload" accept="video/*">
+
+                <div class="video-status">
+                    <div class="status-pill" id="statusPill">
+                        <span class="dot"></span>
+                        <span id="statusText">Sem vídeo</span>
                     </div>
-                    <div class="video-name-tag" id="videoNameTag">—</div>
-                    
-                    <div class="grid-2">
-                        <div>
-                            <label class="field-label">Importar MusicXML</label>
-                            <input type="file" id="xmlUpload" accept=".xml,.musicxml">
+                    <div class="status-pill" id="micStatusPill" style="display:none;">
+                        <span class="dot"></span>
+                        <span id="micStatusText">Mic inativo</span>
+                    </div>
+                </div>
+
+                <!-- Marks Section Directly Below Video -->
+                <div class="video-markers" style="margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label class="field-label" style="margin: 0; display: flex; align-items: center; gap: 6px;">
+                            <span>🔖</span> Marcas <span class="section-badge" id="markerBadge" style="display:none; margin-left: 4px;">0</span>
+                        </label>
+                        <button class="btn btn-accent btn-sm" id="btnAddMarker" style="width: auto; padding: 3px 10px;">+ Criar Marca no Tempo Atual</button>
+                    </div>
+                    <div class="marker-list" id="markerList" style="max-height: 250px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border); border-radius: 6px; padding: 6px;">
+                        <p class="empty-state" style="padding: 10px 0;">Sem marcas. Clique em "Criar" durante a reprodução.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-side">
+
+                <div class="section section-open" id="sec-arquivo">
+                    <div class="section-header" onclick="toggleSection('arquivo')">
+                        <div class="section-label">
+                            <span class="icon">📁</span>
+                            Arquivo
                         </div>
+                        <span class="section-chevron">▲</span>
+                    </div>
+                    <div class="section-body">
                         <div>
-                            <label class="field-label" style="opacity:0; display:block;">.</label>
-                            <button class="btn btn-outline" id="btnExportXml">📤 Exportar XML</button>
+                            <label class="field-label">Vídeo</label>
+                            <input type="file" id="videoUpload" accept="video/*">
                         </div>
-                    </div>
+                        <div class="video-name-tag" id="videoNameTag">—</div>
 
-                    <button class="btn btn-accent btn-sm" id="btnSaveProject" style="width:100%">💾 Salvar Projeto</button>
-                </div>
-            </div>
-
-            <div class="section section-open" id="sec-andamento">
-                <div class="section-header" onclick="toggleSection('andamento')">
-                    <div class="section-label">
-                        <span class="icon">♩</span>
-                        Andamento & Compasso
-                    </div>
-                    <span class="section-chevron">▲</span>
-                </div>
-                <div class="section-body">
-                    <div class="grid-2">
-                        <div>
-                            <label class="field-label">BPM</label>
-                            <div class="stepper">
-                                <button class="btn" id="btnBpmMinus">−</button>
-                                <input type="number" id="bpmInput" value="120" min="40" max="300">
-                                <button class="btn" id="btnBpmPlus">+</button>
+                        <div class="grid-2">
+                            <div>
+                                <label class="field-label">Importar MusicXML</label>
+                                <input type="file" id="xmlUpload" accept=".xml,.musicxml">
+                            </div>
+                            <div>
+                                <label class="field-label" style="opacity:0; display:block;">.</label>
+                                <button class="btn btn-outline" id="btnExportXml">📤 Exportar XML</button>
                             </div>
                         </div>
-                        <div>
-                            <label class="field-label">Compasso</label>
-                            <div class="time-sig">
-                                <input type="number" id="beatsPerMeasure" value="4" min="1" max="12">
-                                <span>/</span>
-                                <select id="beatUnit">
-                                    <option value="2">2</option>
-                                    <option value="4" selected>4</option>
-                                    <option value="8">8</option>
-                                    <option value="16">16</option>
-                                </select>
-                            </div>
+
+                    </div>
+                </div>
+
+                <div class="section section-open" id="sec-andamento">
+                    <div class="section-header" onclick="toggleSection('andamento')">
+                        <div class="section-label">
+                            <span class="icon">♩</span>
+                            Andamento & Compasso
                         </div>
+                        <span class="section-chevron">▲</span>
                     </div>
-                </div>
-            </div>
-
-            <div class="section" id="sec-gatilho">
-                <div class="section-header" onclick="toggleSection('gatilho')">
-                    <div class="section-label">
-                        <span class="icon">🎙</span>
-                        Gatilho de Áudio
-                    </div>
-                    <span class="section-chevron">▼</span>
-                </div>
-                <div class="section-body">
-                    <div class="btn-row">
-                        <button class="btn" id="btnStartMic">Ligar Escuta</button>
-                        <button class="btn btn-outline" id="btnToggleSync" style="display:none">Pausar</button>
-                    </div>
-
-                    <div>
-                        <label class="field-label">Sensibilidade</label>
-                        <div class="mic-row" style="gap:8px; margin-top: 4px;">
-                            <input type="range" id="thresholdSlider" min="1" max="100" value="40" style="flex:1">
-                            <div class="mic-monitor" style="flex:1.8;">
-                                <div class="mic-level" id="micLevel"></div>
-                                <div class="mic-threshold-marker" id="micMarker" style="left:40%"></div>
+                    <div class="section-body">
+                        <div class="grid-2">
+                            <div>
+                                <label class="field-label">BPM</label>
+                                <div class="stepper">
+                                    <button class="btn" id="btnBpmMinus">−</button>
+                                    <input type="number" id="bpmInput" value="120" min="40" max="300">
+                                    <button class="btn" id="btnBpmPlus">+</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="field-label">Compasso</label>
+                                <div class="time-sig">
+                                    <input type="number" id="beatsPerMeasure" value="4" min="1" max="12">
+                                    <span>/</span>
+                                    <select id="beatUnit">
+                                        <option value="2">2</option>
+                                        <option value="4" selected>4</option>
+                                        <option value="8">8</option>
+                                        <option value="16">16</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="sync-toggle" id="syncToggleRow" style="display:none" onclick="toggleSyncPause()">
-                        <span class="sync-toggle-label">Sincronização ativa</span>
-                        <div class="toggle-switch on" id="syncToggleSwitch">
-                            <div class="toggle-knob"></div>
+                <div class="section" id="sec-gatilho">
+                    <div class="section-header" onclick="toggleSection('gatilho')">
+                        <div class="section-label">
+                            <span class="icon">🎙</span>
+                            Gatilho de Áudio
+                        </div>
+                        <span class="section-chevron">▼</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="btn-row">
+                            <button class="btn" id="btnStartMic">Ligar Escuta</button>
+                            <button class="btn" id="btnToggleSync" style="display:none" onclick="toggleSyncPause()">Sincronização Ativa</button>
+                        </div>
+
+                        <div>
+                            <label class="field-label">Sensibilidade</label>
+                            <div class="mic-row" style="gap:8px; margin-top: 4px;">
+                                <span
+                                    style="font-size: 0.9rem; color: var(--text-muted); font-weight: bold; user-select: none;">+</span>
+                                <input type="range" id="thresholdSlider" min="1" max="100" value="40" style="flex:1">
+                                <span
+                                    style="font-size: 0.9rem; color: var(--text-muted); font-weight: bold; user-select: none;">−</span>
+                                <div class="mic-monitor" style="flex:1.8;">
+                                    <div class="mic-level" id="micLevel"></div>
+                                    <div class="mic-threshold-marker" id="micMarker" style="left:40%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+
+                <div class="section" id="sec-frames">
+                    <div class="section-header" onclick="toggleSection('frames')">
+                        <div class="section-label">
+                            <span class="icon">⏱</span>
+                            Ajuste por Frame
+                        </div>
+                        <span class="section-chevron">▼</span>
+                    </div>
+                    <div class="section-body">
+                        <div class="frame-controls">
+                            <button class="btn btn-outline" id="btnFrameBack">◀ Frame</button>
+                            <button class="btn btn-outline" id="btnFrameFwd">Frame ▶</button>
+                        </div>
+                        <div class="grid-3">
+                            <button class="btn btn-outline" onclick="jumpFrames(-10)">−10f</button>
+                            <button class="btn btn-outline" onclick="jumpFrames(-5)">−5f</button>
+                            <button class="btn btn-outline" onclick="jumpFrames(5)">+5f</button>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="section" id="sec-frames">
-                <div class="section-header" onclick="toggleSection('frames')">
-                    <div class="section-label">
-                        <span class="icon">⏱</span>
-                        Ajuste por Frame
-                    </div>
-                    <span class="section-chevron">▼</span>
-                </div>
-                <div class="section-body">
-                    <div class="frame-controls">
-                        <button class="btn btn-outline" id="btnFrameBack">◀ Frame</button>
-                        <button class="btn btn-outline" id="btnFrameFwd">Frame ▶</button>
-                    </div>
-                    <div class="grid-3">
-                        <button class="btn btn-outline" onclick="jumpFrames(-10)">−10f</button>
-                        <button class="btn btn-outline" onclick="jumpFrames(-5)">−5f</button>
-                        <button class="btn btn-outline" onclick="jumpFrames(5)">+5f</button>
-                    </div>
-                </div>
-            </div>
 
-            <div class="section" id="sec-marcas">
-                <div class="section-header" onclick="toggleSection('marcas')">
-                    <div class="section-label">
-                        <span class="icon">🔖</span>
-                        Marcas
-                        <span class="section-badge" id="markerBadge" style="display:none">0</span>
-                    </div>
-                    <span class="section-chevron">▼</span>
-                </div>
-                <div class="section-body">
-                    <button class="btn btn-accent" id="btnAddMarker">+ Criar Marca no Tempo Atual</button>
-                    <div class="marker-list" id="markerList">
-                        <p class="empty-state">Sem marcas. Clique em "Criar" durante a reprodução.</p>
-                    </div>
-                </div>
-            </div>
 
-            <div class="section" id="sec-projetos">
-                <div class="section-header" onclick="toggleSection('projetos')">
-                    <div class="section-label">
-                        <span class="icon">📂</span>
-                        Histórico
-                    </div>
-                    <span class="section-chevron">▼</span>
-                </div>
-                <div class="section-body">
-                    <div class="projects-grid" id="projectsContainer">
-                        <p class="empty-state" style="padding:6px 0">Nenhum projeto salvo.</p>
-                    </div>
-                </div>
-            </div>
 
+
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    // ── DOM refs ──
-    const wrapper       = document.getElementById('appWrapper');
-    const video         = document.getElementById('videoPlayer');
-    const videoUpload   = document.getElementById('videoUpload');
-    const xmlUpload     = document.getElementById('xmlUpload');
-    const btnExportXml  = document.getElementById('btnExportXml');
-    const videoNameTag  = document.getElementById('videoNameTag');
-    const bpmInput      = document.getElementById('bpmInput');
-    const btnBpmMinus   = document.getElementById('btnBpmMinus');
-    const btnBpmPlus    = document.getElementById('btnBpmPlus');
-    const beatsInput    = document.getElementById('beatsPerMeasure');
-    const beatUnitInput = document.getElementById('beatUnit');
-    const displayTimecode = document.getElementById('displayTimecode');
-    const btnStartMic   = document.getElementById('btnStartMic');
-    const btnToggleSync = document.getElementById('btnToggleSync');
-    const thresholdSlider = document.getElementById('thresholdSlider');
-    const micLevelBar   = document.getElementById('micLevel');
-    const micMarker     = document.getElementById('micMarker');
-    const btnFrameBack  = document.getElementById('btnFrameBack');
-    const btnFrameFwd   = document.getElementById('btnFrameFwd');
-    const btnAddMarker  = document.getElementById('btnAddMarker');
-    const markerListEl  = document.getElementById('markerList');
-    const btnSaveProject = document.getElementById('btnSaveProject');
-    const projectsContainer = document.getElementById('projectsContainer');
-    const statusPill    = document.getElementById('statusPill');
-    const statusText    = document.getElementById('statusText');
-    const micStatusPill = document.getElementById('micStatusPill');
-    const micStatusText = document.getElementById('micStatusText');
-    const markerBadge   = document.getElementById('markerBadge');
-    const syncToggleRow  = document.getElementById('syncToggleRow');
-    const syncToggleSwitch = document.getElementById('syncToggleSwitch');
+    <script>
+        // ── DOM refs ──
+        const wrapper = document.getElementById('appWrapper');
+        const video = document.getElementById('videoPlayer');
+        const videoUpload = document.getElementById('videoUpload');
+        const xmlUpload = document.getElementById('xmlUpload');
+        const btnExportXml = document.getElementById('btnExportXml');
+        const videoNameTag = document.getElementById('videoNameTag');
+        const bpmInput = document.getElementById('bpmInput');
+        const btnBpmMinus = document.getElementById('btnBpmMinus');
+        const btnBpmPlus = document.getElementById('btnBpmPlus');
+        const beatsInput = document.getElementById('beatsPerMeasure');
+        const beatUnitInput = document.getElementById('beatUnit');
+        const displayTimecode = document.getElementById('displayTimecode');
+        const displayAbsTimecode = document.getElementById('displayAbsTimecode');
+        const btnStartMic = document.getElementById('btnStartMic');
+        const btnToggleSync = document.getElementById('btnToggleSync');
+        const thresholdSlider = document.getElementById('thresholdSlider');
+        const micLevelBar = document.getElementById('micLevel');
+        const micMarker = document.getElementById('micMarker');
+        const btnFrameBack = document.getElementById('btnFrameBack');
+        const btnFrameFwd = document.getElementById('btnFrameFwd');
+        const btnAddMarker = document.getElementById('btnAddMarker');
+        const markerListEl = document.getElementById('markerList');
+        const projectNameInput = document.getElementById('projectNameInput');
+        const statusPill = document.getElementById('statusPill');
+        const statusText = document.getElementById('statusText');
+        const micStatusPill = document.getElementById('micStatusPill');
+        const micStatusText = document.getElementById('micStatusText');
+        const markerBadge = document.getElementById('markerBadge');
 
-    let currentVideoName = "";
-    let markers = [];
-    let audioContext, analyser, dataArray;
-    let isListening = false;
-    let isSyncPaused = false;
-    let lastTriggerTime = 0;
-    const FPS = 30;
 
-    // ── Accordion ──
-    function toggleSection(id) {
-        const sec = document.getElementById('sec-' + id);
-        sec.classList.toggle('section-open');
-        const chevron = sec.querySelector('.section-chevron');
-        chevron.textContent = sec.classList.contains('section-open') ? '▲' : '▼';
-    }
+        let currentVideoName = "";
+        let markers = [];
+        let audioContext, analyser, dataArray;
+        let isListening = false;
+        let isSyncPaused = false;
+        let lastTriggerTime = 0;
+        const FPS = 30;
 
-    // ── Layout ──
-    function changeLayout(mode) {
-        wrapper.classList.remove('layout-geral', 'layout-vertical', 'layout-horizontal');
-        wrapper.classList.add('layout-' + mode);
-        document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-' + mode).classList.add('active');
-    }
-
-    // ── Time Math ──
-    function calculateMusicalTime(timeSeconds) {
-        const bpm = parseFloat(bpmInput.value) || 120;
-        const beatsPerMeasure = parseInt(beatsInput.value) || 4;
-        const beatUnit = parseInt(beatUnitInput.value) || 4;
-        const unitFactor = 4 / beatUnit;
-        const secondsPerBeat = (60 / bpm) * unitFactor;
-        const currentBeatTotal = timeSeconds / secondsPerBeat;
-        const measure = Math.floor(currentBeatTotal / beatsPerMeasure) + 1;
-        const beatInMeasure = Math.floor(currentBeatTotal % beatsPerMeasure) + 1;
-        const sixteenthNote = Math.floor((currentBeatTotal % 1) * 4) + 1;
-        return `${measure}|${beatInMeasure}|${sixteenthNote}`;
-    }
-
-    function parseMusicalTimeToSeconds(str) {
-        const parts = str.split('|').map(Number);
-        if (parts.length !== 3 || parts.some(isNaN)) return null;
-        const [m, b, s] = parts;
-        const bpm = parseFloat(bpmInput.value) || 120;
-        const beatsPerMeasure = parseInt(beatsInput.value) || 4;
-        const beatUnit = parseInt(beatUnitInput.value) || 4;
-        const unitFactor = 4 / beatUnit;
-        const secondsPerBeat = (60 / bpm) * unitFactor;
-        const totalBeats = ((m - 1) * beatsPerMeasure) + (b - 1) + ((s - 1) / 4);
-        return totalBeats * secondsPerBeat;
-    }
-
-    function formatAbsTime(seconds) {
-        const d = new Date(seconds * 1000);
-        return `${String(d.getUTCMinutes()).padStart(2,'0')}:${String(d.getUTCSeconds()).padStart(2,'0')}`;
-    }
-
-    function updateVisuals() {
-        displayTimecode.innerText = calculateMusicalTime(video.currentTime);
-        requestAnimationFrame(updateVisuals);
-    }
-    updateVisuals();
-
-    // ── Video Load ──
-    videoUpload.addEventListener('change', function () {
-        const file = this.files[0];
-        if (!file) return;
-        video.src = URL.createObjectURL(file);
-        currentVideoName = file.name;
-        videoNameTag.style.display = 'block';
-        videoNameTag.textContent = '📼 ' + currentVideoName;
-        statusPill.classList.add('active');
-        statusText.textContent = currentVideoName.replace(/\.[^.]+$/, '');
-    });
-
-    // ── Frame Navigation ──
-    function jumpFrames(n) {
-        if (!video.paused) video.pause();
-        video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + n / FPS));
-    }
-    btnFrameBack.addEventListener('click', () => jumpFrames(-1));
-    btnFrameFwd.addEventListener('click', () => jumpFrames(1));
-
-    // ── BPM ──
-    btnBpmMinus.addEventListener('click', () => { bpmInput.value = Math.max(40, parseInt(bpmInput.value) - 1); renderMarkers(); });
-    btnBpmPlus.addEventListener('click', ()  => { bpmInput.value = Math.min(300, parseInt(bpmInput.value) + 1); renderMarkers(); });
-    bpmInput.addEventListener('change', renderMarkers);
-    beatsInput.addEventListener('change', renderMarkers);
-    beatUnitInput.addEventListener('change', renderMarkers);
-
-    // ── Markers ──
-    btnAddMarker.addEventListener('click', () => {
-        markers.push({ id: Date.now(), time: video.currentTime, label: `M${markers.length + 1}` });
-        markers.sort((a, b) => a.time - b.time);
-        renderMarkers();
-        const sec = document.getElementById('sec-marcas');
-        if (!sec.classList.contains('section-open')) toggleSection('marcas');
-    });
-
-    function renderMarkers() {
-        markerBadge.style.display = markers.length ? 'inline' : 'none';
-        markerBadge.textContent = markers.length;
-        if (markers.length === 0) {
-            markerListEl.innerHTML = '<p class="empty-state">Sem marcas. Clique em "Criar" durante a reprodução.</p>';
-            return;
+        // ── Accordion ──
+        function toggleSection(id) {
+            const sec = document.getElementById('sec-' + id);
+            sec.classList.toggle('section-open');
+            const chevron = sec.querySelector('.section-chevron');
+            chevron.textContent = sec.classList.contains('section-open') ? '▲' : '▼';
         }
-        markerListEl.innerHTML = '';
-        markers.forEach((marker) => {
-            const item = document.createElement('div');
-            item.className = 'marker-item';
-            item.innerHTML = `
+
+        // ── Layout ──
+        function changeLayout(mode) {
+            wrapper.classList.remove('layout-geral', 'layout-vertical');
+            wrapper.classList.add('layout-' + mode);
+            document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + mode).classList.add('active');
+        }
+
+        // ── Time Math ──
+        function calculateMusicalTime(timeSeconds) {
+            const bpm = parseFloat(bpmInput.value) || 120;
+            const beatsPerMeasure = parseInt(beatsInput.value) || 4;
+            const beatUnit = parseInt(beatUnitInput.value) || 4;
+
+            const subdivisionsPerBeat = 16 / beatUnit;
+            const secondsPerBeat = (60 / bpm) * (4 / beatUnit);
+            const currentBeatTotal = timeSeconds / secondsPerBeat;
+            const measure = Math.floor(currentBeatTotal / beatsPerMeasure) + 1;
+            const beatInMeasure = Math.floor(currentBeatTotal % beatsPerMeasure) + 1;
+            const subdivision = Math.floor((currentBeatTotal % 1) * subdivisionsPerBeat) + 1;
+            return `${measure}|${beatInMeasure}|${subdivision}`;
+        }
+
+        function parseMusicalTimeToSeconds(str) {
+            const parts = str.split('|').map(Number);
+            if (parts.length !== 3 || parts.some(isNaN)) return null;
+            const [m, b, s] = parts;
+            const bpm = parseFloat(bpmInput.value) || 120;
+            const beatsPerMeasure = parseInt(beatsInput.value) || 4;
+            const beatUnit = parseInt(beatUnitInput.value) || 4;
+
+            const subdivisionsPerBeat = 16 / beatUnit;
+            const secondsPerBeat = (60 / bpm) * (4 / beatUnit);
+            const totalBeats = ((m - 1) * beatsPerMeasure) + (b - 1) + ((s - 1) / subdivisionsPerBeat);
+            return totalBeats * secondsPerBeat;
+        }
+
+        function formatAbsTime(seconds) {
+            const totalFrames = Math.floor(seconds * FPS + 0.001);
+            const minutes = Math.floor(totalFrames / (FPS * 60));
+            const secondsPart = Math.floor((totalFrames % (FPS * 60)) / FPS);
+            const frames = totalFrames % FPS;
+            return `${String(minutes).padStart(2, '0')}:${String(secondsPart).padStart(2, '0')}:${String(frames).padStart(2, '0')}`;
+        }
+
+        function updateVisuals() {
+            displayTimecode.innerText = calculateMusicalTime(video.currentTime);
+            displayAbsTimecode.innerText = formatAbsTime(video.currentTime);
+            requestAnimationFrame(updateVisuals);
+        }
+        updateVisuals();
+
+        // ── Video Load ──
+        videoUpload.addEventListener('change', function () {
+            const file = this.files[0];
+            if (!file) return;
+            video.src = URL.createObjectURL(file);
+            currentVideoName = file.name;
+            videoNameTag.style.display = 'block';
+            videoNameTag.textContent = '📼 ' + currentVideoName;
+            statusPill.classList.add('active');
+            statusText.textContent = currentVideoName.replace(/\.[^.]+$/, '');
+            projectNameInput.value = currentVideoName.replace(/\.[^.]+$/, '');
+        });
+
+        // ── Frame Navigation ──
+        function jumpFrames(n) {
+            if (!video.paused) video.pause();
+            video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + n / FPS));
+        }
+        btnFrameBack.addEventListener('click', () => jumpFrames(-1));
+        btnFrameFwd.addEventListener('click', () => jumpFrames(1));
+
+        // ── BPM ──
+        btnBpmMinus.addEventListener('click', () => { bpmInput.value = Math.max(40, parseInt(bpmInput.value) - 1); renderMarkers(); });
+        btnBpmPlus.addEventListener('click', () => { bpmInput.value = Math.min(300, parseInt(bpmInput.value) + 1); renderMarkers(); });
+        bpmInput.addEventListener('change', renderMarkers);
+        beatsInput.addEventListener('change', renderMarkers);
+        beatUnitInput.addEventListener('change', renderMarkers);
+
+        // ── Markers ──
+        btnAddMarker.addEventListener('click', () => {
+            markers.push({ id: Date.now(), time: video.currentTime, label: `M${markers.length + 1}` });
+            markers.sort((a, b) => a.time - b.time);
+            renderMarkers();
+        });
+
+        function renderMarkers() {
+            markerBadge.style.display = markers.length ? 'inline' : 'none';
+            markerBadge.textContent = markers.length;
+            if (markers.length === 0) {
+                markerListEl.innerHTML = '<p class="empty-state">Sem marcas. Clique em "Criar" durante a reprodução.</p>';
+                return;
+            }
+            markerListEl.innerHTML = '';
+            markers.forEach((marker) => {
+                const item = document.createElement('div');
+                item.className = 'marker-item';
+                item.innerHTML = `
                 <div class="marker-times">
                     <input type="text" class="marker-input marker-time-input" value="${calculateMusicalTime(marker.time)}" onchange="updateMarkerTime(${marker.id}, this.value)">
                     <span class="marker-abs">${formatAbsTime(marker.time)}</span>
@@ -777,238 +1159,404 @@
                 <button class="btn btn-sm" onclick="gotoMarker(${marker.time})">➔</button>
                 <button class="btn btn-sm btn-danger" onclick="deleteMarker(${marker.id})">✕</button>
             `;
-            markerListEl.appendChild(item);
-        });
-    }
+                markerListEl.appendChild(item);
+            });
+        }
 
-    window.updateMarkerLabel = (id, v) => { const m = markers.find(x => x.id === id); if (m) m.label = v; };
-    window.updateMarkerTime  = (id, v) => {
-        const sec = parseMusicalTimeToSeconds(v);
-        if (sec !== null) {
-            const m = markers.find(x => x.id === id);
-            if (m) { m.time = sec; markers.sort((a, b) => a.time - b.time); renderMarkers(); }
-        } else { alert("Formato: M|B|S (ex: 3|2|1)"); renderMarkers(); }
-    };
-    window.gotoMarker   = (t)  => { video.currentTime = t; };
-    window.deleteMarker = (id) => { markers = markers.filter(x => x.id !== id); renderMarkers(); };
+        window.updateMarkerLabel = (id, v) => { const m = markers.find(x => x.id === id); if (m) m.label = v; };
+        window.updateMarkerTime = (id, v) => {
+            const sec = parseMusicalTimeToSeconds(v);
+            if (sec !== null) {
+                const m = markers.find(x => x.id === id);
+                if (m) { m.time = sec; markers.sort((a, b) => a.time - b.time); renderMarkers(); }
+            } else { alert("Formato: M|B|S (ex: 3|2|1)"); renderMarkers(); }
+        };
+        window.gotoMarker = (t) => { video.currentTime = t; };
+        window.deleteMarker = (id) => { markers = markers.filter(x => x.id !== id); renderMarkers(); };
 
-    // ── Import/Export MusicXML ──
-    btnExportXml.addEventListener('click', () => {
-        const bpm = parseInt(bpmInput.value) || 120;
-        const beats = parseInt(beatsInput.value) || 4;
-        const beatType = parseInt(beatUnitInput.value) || 4;
-        
-        const typeMap = {2: 'half', 4: 'quarter', 8: 'eighth', 16: '16th'};
-        const beatUnitStr = typeMap[beatType] || 'quarter';
+        // ── Import/Export MusicXML ──
+        btnExportXml.addEventListener('click', () => {
+            const initialName = projectNameInput.value || (currentVideoName ? currentVideoName.replace(/\.[^.]+$/, '') : 'Projeto GL');
+            const pName = prompt("Nome do projeto para salvar/exportar:", initialName);
+            if (pName === null) return; // User cancelled
+            if (pName.trim()) {
+                projectNameInput.value = pName.trim();
+            }
 
-        let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
-<score-partwise version="3.1">
+            const bpm = parseInt(bpmInput.value) || 120;
+            const beats = parseInt(beatsInput.value) || 4;
+            const beatType = parseInt(beatUnitInput.value) || 4;
+
+            const typeMap = { 2: 'half', 4: 'quarter', 8: 'eighth', 16: '16th' };
+            const beatUnitStr = typeMap[beatType] || 'quarter';
+
+            // Calculate divisions and seconds
+            const divisions = 4; // We use 4 divisions per quarter note
+            const divisionsPerMeasure = beats * (4 / beatType) * divisions;
+            const unitFactor = 4 / beatType;
+            const secondsPerBeat = (60 / bpm) * unitFactor;
+            const secondsPerDivision = (60 / bpm) / divisions;
+
+            // Map all markers to measure and division index
+            const markerPositions = markers.map(m => {
+                const totalDivisions = Math.round(m.time / secondsPerDivision);
+                const measure = Math.floor(totalDivisions / divisionsPerMeasure) + 1;
+                const divisionIndex = totalDivisions % divisionsPerMeasure;
+                return {
+                    measure,
+                    divisionIndex,
+                    label: m.label
+                };
+            });
+
+            // Determine total number of measures
+            let lastMarkerMeasure = 1;
+            if (markerPositions.length > 0) {
+                lastMarkerMeasure = Math.max(...markerPositions.map(mp => mp.measure));
+            }
+            
+            // If video is loaded, estimate measures from video duration
+            const videoDuration = video.duration || 0;
+            const secondsPerMeasure = secondsPerBeat * beats;
+            const estimatedMeasures = videoDuration > 0 ? Math.ceil(videoDuration / secondsPerMeasure) : 1;
+            const numMeasures = Math.max(estimatedMeasures, lastMarkerMeasure);
+
+            // Group marker positions by measure number
+            const markersByMeasure = {};
+            markerPositions.forEach(mp => {
+                if (!markersByMeasure[mp.measure]) {
+                    markersByMeasure[mp.measure] = [];
+                }
+                markersByMeasure[mp.measure].push(mp);
+            });
+
+            // Sort markers in each measure by divisionIndex ascending
+            for (const mNum in markersByMeasure) {
+                markersByMeasure[mNum].sort((a, b) => a.divisionIndex - b.divisionIndex);
+            }
+
+            // Function to generate rests XML
+            function getRestsXml(gap) {
+                let xml = '';
+                let remaining = gap;
+                while (remaining > 0) {
+                    if (remaining >= 4) {
+                        xml += `
+      <note>
+        <rest/>
+        <duration>4</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+      </note>`;
+                        remaining -= 4;
+                    } else if (remaining >= 2) {
+                        xml += `
+      <note>
+        <rest/>
+        <duration>2</duration>
+        <voice>1</voice>
+        <type>eighth</type>
+      </note>`;
+                        remaining -= 2;
+                    } else {
+                        xml += `
+      <note>
+        <rest/>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+      </note>`;
+                        remaining -= 1;
+                    }
+                }
+                return xml;
+            }
+
+            // Generate header
+            let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
+<score-partwise version="4.0">
+  <work>
+    <work-title>${projectNameInput.value || 'Projeto GL'}</work-title>
+  </work>
   <part-list>
-    <score-part id="P1"><part-name>Sync Track</part-name></score-part>
+    <score-part id="P1">
+      <part-name>Sync Track</part-name>
+    </score-part>
   </part-list>
-  <part id="P1">
-    <measure number="1">
+  <part id="P1">`;
+
+            for (let mNum = 1; mNum <= numMeasures; mNum++) {
+                xml += `
+    <measure number="${mNum}">`;
+
+                // Add attributes in measure 1
+                if (mNum === 1) {
+                    xml += `
       <attributes>
-        <divisions>4</divisions>
-        <time><beats>${beats}</beats><beat-type>${beatType}</beat-type></time>
-        <clef><sign>G</sign><line>2</line></clef>
+        <divisions>${divisions}</divisions>
+        <key>
+          <fifths>0</fifths>
+        </key>
+        <time>
+          <beats>${beats}</beats>
+          <beat-type>${beatType}</beat-type>
+        </time>
+        <clef>
+          <sign>G</sign>
+          <line>2</line>
+        </clef>
       </attributes>
-      <direction placement="above">
+      <direction placement="above" system="only-top">
         <direction-type>
-          <metronome><beat-unit>${beatUnitStr}</beat-unit><per-minute>${bpm}</per-minute></metronome>
+          <metronome parentheses="no">
+            <beat-unit>${beatUnitStr}</beat-unit>
+            <per-minute>${bpm}</per-minute>
+          </metronome>
         </direction-type>
         <sound tempo="${bpm}"/>
       </direction>`;
+                }
 
-        markers.forEach((m) => {
-            const mTime = calculateMusicalTime(m.time);
-            xml += `
+                const measureMarkers = markersByMeasure[mNum] || [];
+
+                if (measureMarkers.length === 0) {
+                    // Whole measure rest
+                    xml += `
+      <note>
+        <rest measure="yes"/>
+        <duration>${divisionsPerMeasure}</duration>
+        <voice>1</voice>
+      </note>`;
+                } else {
+                    let currentDiv = 0;
+                    measureMarkers.forEach(mm => {
+                        const gap = mm.divisionIndex - currentDiv;
+                        if (gap > 0) {
+                            xml += getRestsXml(gap);
+                        }
+                        
+                        // Write direction words for the marker
+                        xml += `
       <direction placement="above">
-        <direction-type><words default-y="40">${m.label} (${mTime})</words></direction-type>
+        <direction-type>
+          <words>${mm.label}</words>
+        </direction-type>
       </direction>`;
-        });
+                        
+                        // Write note representing the sync point (B4 16th note)
+                        xml += `
+      <note>
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>16th</type>
+        <stem>down</stem>
+      </note>`;
+                        
+                        currentDiv = mm.divisionIndex + 1;
+                    });
 
-        xml += `
-    </measure>
+                    // Pad the remainder of the measure with rests
+                    if (currentDiv < divisionsPerMeasure) {
+                        xml += getRestsXml(divisionsPerMeasure - currentDiv);
+                    }
+                }
+
+                // Add light-heavy barline to the last measure
+                if (mNum === numMeasures) {
+                    xml += `
+      <barline location="right">
+        <bar-style>light-heavy</bar-style>
+      </barline>`;
+                }
+
+                xml += `
+    </measure>`;
+            }
+
+            xml += `
   </part>
 </score-partwise>`;
 
-        const blob = new Blob([xml], {type: 'application/vnd.recordare.musicxml+xml'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = (currentVideoName ? currentVideoName.replace(/\.[^.]+$/, '') : 'projeto_gl') + '.musicxml';
-        a.click();
-        URL.revokeObjectURL(url);
-    });
-
-    xmlUpload.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(evt.target.result, "text/xml");
-
-            // Parsing BPM
-            const tempoEl = xmlDoc.querySelector('per-minute');
-            if (tempoEl) bpmInput.value = tempoEl.textContent;
-            else {
-                const soundEl = xmlDoc.querySelector('sound[tempo]');
-                if (soundEl) bpmInput.value = soundEl.getAttribute('tempo');
-            }
-
-            // Parsing Compasso
-            const beatsEl = xmlDoc.querySelector('beats');
-            if (beatsEl) beatsInput.value = beatsEl.textContent;
-            const beatTypeEl = xmlDoc.querySelector('beat-type');
-            if (beatTypeEl) beatUnitInput.value = beatTypeEl.textContent;
-
-            // Parsing Marcas
-            markers = [];
-            let mId = Date.now();
-            const wordsEls = xmlDoc.querySelectorAll('words, rehearsal');
-            wordsEls.forEach((w, i) => {
-                let label = w.textContent;
-                let time = i * 2; // Fallback
-                
-                // Tenta extrair a anotação de tempo em formato (M|B|S)
-                const match = label.match(/\((\d+\|\d+\|\d+)\)/);
-                if (match) {
-                    const parsedTime = parseMusicalTimeToSeconds(match[1]);
-                    if (parsedTime !== null) time = parsedTime;
-                    label = label.replace(/\s*\(.*\)/, ''); // Limpa o label
-                }
-                markers.push({ id: mId++, time: time, label: label || `Marca ${i+1}` });
-            });
-
-            renderMarkers();
-            
-            // Abre o painel de marcas se tiver dados
-            if(markers.length > 0) {
-                const sec = document.getElementById('sec-marcas');
-                if (!sec.classList.contains('section-open')) toggleSection('marcas');
-            }
-            
-            e.target.value = ''; // Reseta input
-        };
-        reader.readAsText(file);
-    });
-
-    // ── Projects ──
-    function captureThumbnail() {
-        const c = document.createElement('canvas'); c.width = 120; c.height = 68;
-        try { c.getContext('2d').drawImage(video, 0, 0, c.width, c.height); } catch(e) {}
-        return c.toDataURL('image/jpeg', 0.4);
-    }
-
-    btnSaveProject.addEventListener('click', () => {
-        if (!currentVideoName) { alert("Carregue um vídeo primeiro."); return; }
-        const proj = {
-            id: Date.now(),
-            date: new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }),
-            videoName: currentVideoName,
-            duration: formatAbsTime(video.duration || 0),
-            thumbnail: captureThumbnail(),
-            bpm: bpmInput.value,
-            beatsPerMeasure: beatsInput.value,
-            beatUnit: beatUnitInput.value,
-            markers: [...markers]
-        };
-        let saved = JSON.parse(localStorage.getItem('gl_projects') || '[]');
-        saved.unshift(proj);
-        if (saved.length > 5) saved = saved.slice(0, 5);
-        localStorage.setItem('gl_projects', JSON.stringify(saved));
-        renderProjects();
-        btnSaveProject.textContent = '✓ Salvo!';
-        setTimeout(() => btnSaveProject.textContent = '💾 Salvar Projeto', 1500);
-    });
-
-    function renderProjects() {
-        const saved = JSON.parse(localStorage.getItem('gl_projects') || '[]');
-        if (saved.length === 0) return;
-        projectsContainer.innerHTML = '';
-        saved.forEach(proj => {
-            const card = document.createElement('div');
-            card.className = 'project-card';
-            card.title = proj.videoName;
-            card.onclick = () => {
-                bpmInput.value = proj.bpm;
-                beatsInput.value = proj.beatsPerMeasure;
-                beatUnitInput.value = proj.beatUnit;
-                markers = proj.markers || [];
-                currentVideoName = proj.videoName;
-                renderMarkers();
-                videoNameTag.style.display = 'block';
-                videoNameTag.innerHTML = `⚠️ Selecione: <strong>${proj.videoName}</strong>`;
-            };
-            card.innerHTML = `
-                <div class="project-thumb" style="background-image:url('${proj.thumbnail}')">
-                    <span class="project-dur">${proj.duration}</span>
-                </div>
-                <div class="project-info">
-                    <div class="project-title">${proj.videoName.replace(/\.[^.]+$/, '')}</div>
-                    <div class="project-bpm">${proj.bpm} BPM · ${proj.beatsPerMeasure}/${proj.beatUnit}</div>
-                </div>`;
-            projectsContainer.appendChild(card);
+            const blob = new Blob([xml], { type: 'application/vnd.recordare.musicxml+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (projectNameInput.value || 'projeto_gl') + '.musicxml';
+            a.click();
+            URL.revokeObjectURL(url);
         });
-    }
-    renderProjects();
 
-    // ── Audio Trigger ──
-    thresholdSlider.addEventListener('input', e => { micMarker.style.left = `${e.target.value}%`; });
+        xmlUpload.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(evt.target.result, "text/xml");
 
-    function toggleSyncPause() {
-        isSyncPaused = !isSyncPaused;
-        syncToggleSwitch.classList.toggle('on', !isSyncPaused);
-        const label = syncToggleRow.querySelector('.sync-toggle-label');
-        label.textContent = isSyncPaused ? 'Sincronização pausada' : 'Sincronização ativa';
-        micStatusText.textContent = isSyncPaused ? 'Sinc. pausada' : 'Escutando';
-        micStatusPill.style.borderColor = isSyncPaused ? 'var(--accent)' : 'var(--primary)';
-        micStatusPill.style.color = isSyncPaused ? 'var(--accent)' : 'var(--primary)';
-    }
-    window.toggleSyncPause = toggleSyncPause;
+                // Default values
+                let bpm = 120;
+                let beatsPerMeasure = 4;
+                let beatUnit = 4;
+                let divisions = 4;
 
-    btnStartMic.addEventListener('click', async () => {
-        if (isListening) return;
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            audioContext = new AudioContext();
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256;
-            audioContext.createMediaStreamSource(stream).connect(analyser);
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-            isListening = true;
-            btnStartMic.textContent = '✓ Microfone ativo';
-            btnStartMic.disabled = true;
-            btnStartMic.style.opacity = '0.6';
-            syncToggleRow.style.display = 'flex';
-            micStatusPill.style.display = 'flex';
-            micStatusText.textContent = 'Escutando';
-            monitorAudio();
-        } catch (err) {
-            btnStartMic.textContent = '⚠ Permissão negada';
-            console.error(err);
+                // Parsing project title
+                const titleEl = xmlDoc.querySelector('work-title');
+                if (titleEl && titleEl.textContent.trim()) {
+                    projectNameInput.value = titleEl.textContent.trim();
+                } else if (file.name) {
+                    projectNameInput.value = file.name.replace(/\.[^.]+$/, '');
+                }
+
+                // Parsing BPM
+                const tempoEl = xmlDoc.querySelector('per-minute');
+                if (tempoEl) bpm = parseFloat(tempoEl.textContent) || 120;
+                else {
+                    const soundEl = xmlDoc.querySelector('sound[tempo]');
+                    if (soundEl) bpm = parseFloat(soundEl.getAttribute('tempo')) || 120;
+                }
+                bpmInput.value = bpm;
+
+                // Parsing Compasso
+                const beatsEl = xmlDoc.querySelector('beats');
+                if (beatsEl) beatsPerMeasure = parseInt(beatsEl.textContent) || 4;
+                beatsInput.value = beatsPerMeasure;
+                
+                const beatTypeEl = xmlDoc.querySelector('beat-type');
+                if (beatTypeEl) beatUnit = parseInt(beatTypeEl.textContent) || 4;
+                beatUnitInput.value = beatUnit;
+
+                // Parsing divisions
+                const divisionsEl = xmlDoc.querySelector('divisions');
+                if (divisionsEl) divisions = parseInt(divisionsEl.textContent) || 4;
+
+                // Parsing Marcas
+                markers = [];
+                let mId = Date.now();
+                
+                const measures = xmlDoc.querySelectorAll('part > measure');
+                measures.forEach(measure => {
+                    const measureNum = parseInt(measure.getAttribute('number')) || 1;
+                    let currentDiv = 0;
+                    
+                    const children = measure.children;
+                    for (let i = 0; i < children.length; i++) {
+                        const child = children[i];
+                        const tagName = child.tagName.toLowerCase();
+                        
+                        if (tagName === 'attributes') {
+                            const divEl = child.querySelector('divisions');
+                            if (divEl) divisions = parseInt(divEl.textContent) || divisions;
+                            const beatsElVal = child.querySelector('beats');
+                            if (beatsElVal) beatsPerMeasure = parseInt(beatsElVal.textContent) || beatsPerMeasure;
+                            const beatTypeElVal = child.querySelector('beat-type');
+                            if (beatTypeElVal) beatUnit = parseInt(beatTypeElVal.textContent) || beatUnit;
+                        } else if (tagName === 'note') {
+                            const isChord = child.querySelector('chord') !== null;
+                            const grace = child.querySelector('grace') !== null;
+                            if (!isChord && !grace) {
+                                const durEl = child.querySelector('duration');
+                                const dur = durEl ? (parseInt(durEl.textContent) || 0) : 0;
+                                currentDiv += dur;
+                            }
+                        } else if (tagName === 'backup') {
+                            const durEl = child.querySelector('duration');
+                            const dur = durEl ? (parseInt(durEl.textContent) || 0) : 0;
+                            currentDiv -= dur;
+                        } else if (tagName === 'forward') {
+                            const durEl = child.querySelector('duration');
+                            const dur = durEl ? (parseInt(durEl.textContent) || 0) : 0;
+                            currentDiv += dur;
+                        } else if (tagName === 'direction') {
+                            const wordsEl = child.querySelector('words');
+                            if (wordsEl) {
+                                let label = wordsEl.textContent.trim();
+                                if (label) {
+                                    const secondsPerDivision = (60 / bpm) / divisions;
+                                    const divisionsPerMeasure = beatsPerMeasure * (4 / beatUnit) * divisions;
+                                    const absDiv = (measureNum - 1) * divisionsPerMeasure + currentDiv;
+                                    const time = absDiv * secondsPerDivision;
+                                    markers.push({ id: mId++, time: time, label: label });
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Sort markers by time
+                markers.sort((a, b) => a.time - b.time);
+                renderMarkers();
+
+
+
+                e.target.value = ''; // Reseta input
+            };
+            reader.readAsText(file);
+        });
+
+
+
+        // ── Audio Trigger ──
+        thresholdSlider.addEventListener('input', e => { micMarker.style.left = `${e.target.value}%`; });
+
+        function toggleSyncPause() {
+            isSyncPaused = !isSyncPaused;
+            if (isSyncPaused) {
+                btnToggleSync.textContent = 'Sincronização Pausada';
+                btnToggleSync.className = 'btn btn-danger';
+            } else {
+                btnToggleSync.textContent = 'Sincronização Ativa';
+                btnToggleSync.className = 'btn';
+            }
+            micStatusText.textContent = isSyncPaused ? 'Sinc. pausada' : 'Escutando';
+            micStatusPill.style.borderColor = isSyncPaused ? 'var(--accent)' : 'var(--primary)';
+            micStatusPill.style.color = isSyncPaused ? 'var(--accent)' : 'var(--primary)';
         }
-    });
+        window.toggleSyncPause = toggleSyncPause;
 
-    function monitorAudio() {
-        if (!isListening) return;
-        analyser.getByteFrequencyData(dataArray);
-        let sum = 0;
-        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-        let volumePercent = (sum / dataArray.length / 255) * 250;
-        micLevelBar.style.width = `${Math.min(100, volumePercent)}%`;
-        const now = Date.now();
-        if (volumePercent > parseInt(thresholdSlider.value) && video.paused && !isSyncPaused && (now - lastTriggerTime > 1000)) {
-            video.play();
-            lastTriggerTime = now;
-            micLevelBar.style.backgroundColor = 'var(--accent)';
-            setTimeout(() => micLevelBar.style.backgroundColor = 'var(--primary)', 300);
+        btnStartMic.addEventListener('click', async () => {
+            if (isListening) return;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new AudioContext();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                audioContext.createMediaStreamSource(stream).connect(analyser);
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                isListening = true;
+                btnStartMic.style.display = 'none';
+                btnToggleSync.style.display = 'block';
+                micStatusPill.style.display = 'flex';
+                micStatusText.textContent = 'Escutando';
+                monitorAudio();
+            } catch (err) {
+                btnStartMic.textContent = '⚠ Permissão negada';
+                console.error(err);
+            }
+        });
+
+        function monitorAudio() {
+            if (!isListening) return;
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            let volumePercent = (sum / dataArray.length / 255) * 250;
+            micLevelBar.style.width = `${Math.min(100, volumePercent)}%`;
+            const now = Date.now();
+            if (volumePercent > parseInt(thresholdSlider.value) && video.paused && !isSyncPaused && (now - lastTriggerTime > 1000)) {
+                video.play();
+                lastTriggerTime = now;
+                micLevelBar.style.backgroundColor = 'var(--accent)';
+                setTimeout(() => micLevelBar.style.backgroundColor = 'var(--primary)', 300);
+            }
+            requestAnimationFrame(monitorAudio);
         }
-        requestAnimationFrame(monitorAudio);
-    }
-</script>
+    </script>
 </body>
+
 </html>
