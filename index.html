@@ -9,8 +9,8 @@
         :root {
             --primary: #BCDFB9;
             --accent: #C87F8B;
-            --bg-overlay: rgba(25, 25, 30, 0.85);
-            --card-bg: rgba(40, 40, 45, 0.9);
+            --bg-overlay: rgba(25, 25, 30, 0.9);
+            --card-bg: rgba(45, 45, 50, 0.95);
             --text: #e0e0e0;
             --text-muted: #a0a0a0;
             --border: #444;
@@ -20,7 +20,7 @@
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             color: var(--text);
             margin: 0;
-            padding: 2rem;
+            padding: 0.5rem; /* Reduzido para economizar espaço */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -32,171 +32,209 @@
             background-color: #111;
         }
 
+        /* Container Principal Mini */
         .app-wrapper {
             background-color: var(--bg-overlay);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            padding: 2rem;
-            border-radius: 12px;
+            padding: 1rem;
+            border-radius: 8px;
             width: 100%;
-            max-width: 1250px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            max-width: 1200px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             box-sizing: border-box;
+            transition: max-width 0.3s ease;
         }
 
-        header { text-align: center; margin-bottom: 1.5rem; }
-        h1 { font-weight: 800; letter-spacing: -0.05em; margin: 0; font-size: 2.5rem; color: #fff; }
-        .brand { color: var(--accent); }
-        header p { color: var(--text-muted); }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
 
+        h1 { font-weight: 800; margin: 0; font-size: 1.3rem; color: #fff; }
+        .brand { color: var(--accent); }
+        header p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
+
+        /* Barra de Seleção de Layout */
+        .layout-selector {
+            display: flex;
+            gap: 5px;
+            background: rgba(0,0,0,0.4);
+            padding: 3px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+        .layout-btn {
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+            width: auto;
+        }
+        .layout-btn.active {
+            background: var(--primary);
+            color: #111;
+        }
+
+        /* Grid Base */
         .container {
             display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 2rem;
+            gap: 1rem;
+            transition: all 0.3s ease;
         }
 
-        /* Player Area */
+        /* Player Area Mini */
         .video-wrapper {
             position: relative;
             background: #000;
-            border-radius: 8px;
+            border-radius: 6px;
             overflow: hidden;
             aspect-ratio: 16/9;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             border: 1px solid var(--border);
             height: fit-content;
         }
-
         video { width: 100%; height: 100%; display: block; }
 
         .overlay {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 10px;
+            left: 10px;
             background: rgba(0, 0, 0, 0.85);
             color: var(--primary);
-            padding: 10px 25px;
-            border-radius: 6px;
+            padding: 4px 12px;
+            border-radius: 4px;
             font-family: monospace;
-            font-size: 2rem;
+            font-size: 1.2rem;
             font-weight: bold;
             pointer-events: none;
-            display: flex;
-            gap: 15px;
-            border-left: 4px solid var(--accent);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            border-left: 3px solid var(--accent);
         }
 
-        /* Control Panel */
+        /* Painel de Controles Otimizado */
         .controls {
             background: var(--card-bg);
-            padding: 1.5rem;
-            border-radius: 8px;
+            padding: 0.8rem;
+            border-radius: 6px;
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            gap: 1.2rem;
+            gap: 0.8rem;
+            font-size: 0.85rem;
         }
 
-        .control-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        
-        .grid-2-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
+        .control-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .grid-2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
         label {
-            font-weight: 600; font-size: 0.8rem; text-transform: uppercase;
+            font-weight: 700; font-size: 0.7rem; text-transform: uppercase;
             letter-spacing: 0.05em; color: var(--text-muted);
         }
 
         input[type="number"], input[type="file"], input[type="range"], select, input[type="text"] {
             background-color: rgba(20, 20, 20, 0.8); color: #fff;
-            padding: 0.7rem; border: 1px solid var(--border); border-radius: 4px;
-            font-family: inherit; font-size: 0.95rem; box-sizing: border-box; width: 100%;
+            padding: 0.4rem; border: 1px solid var(--border); border-radius: 4px;
+            font-family: inherit; font-size: 0.85rem; box-sizing: border-box; width: 100%;
         }
 
         input[type="file"]::file-selector-button {
             background-color: #444; color: #fff; border: none;
-            padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin-right: 10px;
-        }
-
-        input:focus, select:focus {
-            outline: none; border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(188, 223, 185, 0.2);
+            padding: 0.2rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;
         }
 
         button {
             background-color: var(--primary); color: #111; font-weight: 700;
-            border: none; padding: 0.7rem; border-radius: 4px; cursor: pointer;
-            transition: all 0.2s; font-size: 0.95rem; width: 100%; box-sizing: border-box;
+            border: none; padding: 0.5rem; border-radius: 4px; cursor: pointer;
+            transition: all 0.2s; font-size: 0.85rem; width: 100%; box-sizing: border-box;
         }
-
         button:hover { filter: brightness(1.1); }
         button.action-btn { background-color: var(--accent); color: #fff; }
         button.outline-btn { background-color: transparent; border: 1px solid var(--primary); color: var(--primary); }
-        button.pause-sync-btn { background-color: transparent; border: 1px solid var(--accent); color: var(--accent); }
+        button.pause-sync-btn { background-color: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 0.4rem; }
         button.pause-sync-btn.paused { background-color: var(--accent); color: #fff; }
         
-        /* BPM Stepper e Time Signature */
+        /* Steppers Compactos */
         .stepper, .time-signature { display: flex; width: 100%; }
-        .stepper button { width: 40px; padding: 0; border-radius: 0; background: #444; color: #fff; }
+        .stepper button { width: 30px; padding: 0; border-radius: 0; background: #444; color: #fff; }
         .stepper button:first-child { border-radius: 4px 0 0 4px; }
         .stepper button:last-child { border-radius: 0 4px 4px 0; }
         .stepper input { border-radius: 0; border-left: none; border-right: none; text-align: center; }
         
         .time-signature input { border-radius: 4px 0 0 4px; text-align: center; }
-        .time-signature span { background: #333; padding: 0.7rem 0.5rem; display: flex; align-items: center; justify-content: center; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-        .time-signature select { border-radius: 0 4px 4px 0; text-align: center; padding-left: 0.2rem; }
+        .time-signature span { background: #333; padding: 0 5px; display: flex; align-items: center; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .time-signature select { border-radius: 0 4px 4px 0; text-align: center; }
 
-        /* Mic Monitor */
-        .mic-monitor { width: 100%; height: 12px; background: rgba(0,0,0,0.5); border-radius: 6px; overflow: hidden; position: relative; border: 1px solid var(--border); }
-        .mic-level { height: 100%; width: 0%; background: var(--primary); transition: width 0.05s ease-out; }
+        /* Monitor de Áudio */
+        .mic-monitor { width: 100%; height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden; position: relative; border: 1px solid var(--border); }
+        .mic-level { height: 100%; width: 0%; background: var(--primary); }
         .mic-threshold-marker { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent); z-index: 2; }
 
         hr { width: 100%; border: 0; border-top: 1px solid var(--border); margin: 0; }
 
-        /* Marcadores Editáveis */
-        .marker-list { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 5px; }
-        .marker-item { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 4px; padding: 8px; display: grid; grid-template-columns: 80px 1fr auto auto; gap: 8px; align-items: center; }
-        .marker-times { display: flex; flex-direction: column; gap: 2px; }
-        .marker-abs { color: var(--text-muted); font-family: monospace; font-size: 0.7rem; text-align: center; }
-        .marker-input { background: rgba(0,0,0,0.2) !important; border: 1px solid transparent !important; border-bottom: 1px dashed var(--border) !important; border-radius: 2px !important; padding: 4px !important; color: #fff !important; font-size: 0.85rem !important; transition: border 0.2s; }
-        .marker-input:focus { border-bottom: 1px solid var(--primary) !important; background: rgba(0,0,0,0.5) !important; }
-        .marker-time-input { color: var(--primary) !important; font-weight: bold; font-family: monospace; text-align: center; font-size: 0.95rem !important; padding: 2px !important; }
-        .marker-btn-go { background: var(--primary); color: #111; padding: 6px 12px; font-size: 0.8rem; width: auto; font-weight: bold; }
-        .marker-btn-del { background: transparent; color: var(--accent); padding: 6px 10px; font-size: 0.8rem; border: 1px solid var(--accent); width: auto; }
+        /* Lista de Marcas Reduzida */
+        .marker-list { display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto; }
+        .marker-item { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 4px; padding: 4px; display: grid; grid-template-columns: 65px 1fr auto auto; gap: 5px; align-items: center; }
+        .marker-times { display: flex; flex-direction: column; }
+        .marker-abs { color: var(--text-muted); font-family: monospace; font-size: 0.65rem; text-align: center; }
+        .marker-input { background: transparent !important; border: none !important; border-bottom: 1px dashed var(--border) !important; padding: 2px !important; color: #fff !important; font-size: 0.8rem !important; }
+        .marker-time-input { color: var(--primary) !important; font-weight: bold; font-family: monospace; text-align: center; font-size: 0.8rem !important; }
+        .marker-btn-go { background: var(--primary); color: #111; padding: 3px 6px; font-size: 0.75rem; width: auto; }
+        .marker-btn-del { background: transparent; color: var(--accent); padding: 3px 5px; font-size: 0.75rem; border: 1px solid var(--accent); width: auto; }
 
-        /* Projetos */
-        .projects-section { margin-top: 2rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; }
-        .projects-grid { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
-        .project-card { min-width: 180px; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; cursor: pointer; transition: border-color 0.2s; }
-        .project-card:hover { border-color: var(--primary); }
-        .project-thumb { width: 100%; height: 100px; background-color: #222; background-size: cover; background-position: center; position: relative; }
-        .project-dur { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.8); padding: 2px 6px; font-size: 0.7rem; border-radius: 4px; font-family: monospace; }
-        .project-info { padding: 10px; }
-        .project-title { font-size: 0.85rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
-        .project-date { font-size: 0.7rem; color: var(--text-muted); }
+        /* Projetos Histórico Compacto */
+        .projects-section { background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem; }
+        .projects-grid { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
+        .project-card { min-width: 120px; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; cursor: pointer; font-size: 0.75rem; }
+        .project-thumb { width: 100%; height: 60px; background-size: cover; background-position: center; position: relative; }
+        .project-dur { position: absolute; bottom: 2px; right: 2px; background: rgba(0,0,0,0.8); padding: 1px 4px; font-size: 0.65rem; font-family: monospace; border-radius: 2px; }
+        .project-info { padding: 4px; }
+        .project-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
 
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #666; }
+        /* ==========================================================================
+           DEFINIÇÕES DE LAYOUT DInÂMICO
+           ========================================================================== */
+        
+        /* 1. MODO GERAL (Padrão) */
+        .layout-geral .container { grid-template-columns: 1fr 380px; }
 
-        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+        /* 2. MODO VERTICAL (Coluna Estreita Lateral) */
+        .layout-vertical { max-width: 380px; }
+        .layout-vertical .container { grid-template-columns: 1fr; }
+        .layout-vertical header p { display: none; }
+
+        /* 3. MODO HORIZONTAL (Barra Baixa) */
+        .layout-horizontal { max-width: 100%; }
+        .layout-horizontal .container { grid-template-columns: 320px 1fr 1fr; }
+        .layout-horizontal .controls { display: grid; grid-template-columns: 1fr; gap: 0.5rem; }
+        .layout-horizontal .projects-section { display: none; } /* Oculta projetos no modo barra para focar na ação */
+
+        @media (max-width: 800px) {
+            .layout-geral .container, .layout-horizontal .container { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="app-wrapper">
+    <div class="app-wrapper layout-geral" id="appWrapper">
         <header>
-            <h1><span class="brand">GL</span> Sync-in-Tap</h1>
-            <p>Sincronizador Mestre & Gestor de Projetos</p>
+            <div>
+                <h1><span class="brand">GL</span> Sync-in-Tap</h1>
+                <p>Sincronismo Otimizado de Partitura</p>
+            </div>
+            <div class="layout-selector">
+                <button class="layout-btn active" id="btn-geral" onclick="changeLayout('geral')">Geral</button>
+                <button class="layout-btn" id="btn-vertical" onclick="changeLayout('vertical')">Vertical</button>
+                <button class="layout-btn" id="btn-horizontal" onclick="changeLayout('horizontal')">Horizontal</button>
+            </div>
         </header>
 
         <div class="container">
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div id="videoBlock" style="display: flex; flex-direction: column; gap: 0.8rem;">
                 <div class="video-wrapper">
                     <video id="videoPlayer" controls></video>
                     <div class="overlay" id="overlay">
@@ -205,35 +243,34 @@
                 </div>
                 
                 <div class="projects-section">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <label style="margin: 0; font-size: 1rem;">Últimos Projetos Salvos</label>
-                        <button id="btnSaveProject" class="action-btn" style="width: auto; padding: 0.5rem 1.5rem;">Salvar Projeto Atual</button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                        <label style="margin: 0;">Histórico de Projetos</label>
+                        <button id="btnSaveProject" class="action-btn" style="width: auto; padding: 2px 10px; font-size: 0.75rem;">Salvar Atual</button>
                     </div>
                     <div class="projects-grid" id="projectsContainer">
-                        <p style="color: var(--text-muted); font-size: 0.9rem; font-style: italic;">Nenhum projeto salvo ainda.</p>
+                        <p style="color: var(--text-muted); font-size: 0.75rem; margin: 5px 0; font-style: italic;">Nenhum projeto salvo.</p>
                     </div>
                 </div>
             </div>
 
             <div class="controls">
-                
                 <div class="control-group">
-                    <label for="videoUpload">1. Carregar Vídeo</label>
+                    <label for="videoUpload">1. Vídeo</label>
                     <input type="file" id="videoUpload" accept="video/*">
-                    <small id="videoNameLabel" style="color:var(--accent); font-size:0.75rem; display:none;">Vídeo atual: <span></span></small>
+                    <small id="videoNameLabel" style="color:var(--accent); font-size:0.7rem; display:none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Arq: <span></span></small>
                 </div>
 
                 <hr>
 
                 <div class="control-group">
-                    <label>2. Gatilho Sonoro (Somente Play)</label>
-                    <div style="display: flex; gap: 10px;">
-                        <button id="btnStartMic" style="flex: 1;">Iniciar Escuta</button>
+                    <label>2. Gatilho (Play)</label>
+                    <div style="display: flex; gap: 5px;">
+                        <button id="btnStartMic" style="padding: 0.3rem;">Ligar Escuta</button>
                         <button id="btnToggleSync" class="pause-sync-btn" style="display: none; flex: 1;">Pausar Sinc.</button>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
-                        <input type="range" id="thresholdSlider" min="1" max="100" value="40" style="flex: 1; padding: 0;" title="Sensibilidade">
-                        <div class="mic-monitor" style="flex: 2;">
+                    <div style="display: flex; align-items: center; gap: 5px; margin-top: 4px;">
+                        <input type="range" id="thresholdSlider" min="1" max="100" value="40" style="flex: 1; padding: 0;">
+                        <div class="mic-monitor" style="flex: 1.5;">
                             <div class="mic-level" id="micLevel"></div>
                             <div class="mic-threshold-marker" id="micMarker" style="left: 40%;"></div>
                         </div>
@@ -269,30 +306,28 @@
                 <hr>
                 
                 <div class="control-group">
-                    <label>Navegação Fina (Frame a Frame)</label>
-                    <div style="display: flex; gap: 10px;">
-                        <button id="btnFrameBack" class="outline-btn" style="flex: 1; font-family: monospace; font-size: 1.1rem;">&lt; Frame</button>
-                        <button id="btnFrameFwd" class="outline-btn" style="flex: 1; font-family: monospace; font-size: 1.1rem;">Frame &gt;</button>
+                    <label>Ajuste Fino (Frames)</label>
+                    <div style="display: flex; gap: 5px;">
+                        <button id="btnFrameBack" class="outline-btn" style="padding: 0.3rem;">&lt; Frame</button>
+                        <button id="btnFrameFwd" class="outline-btn" style="padding: 0.3rem;">Frame &gt;</button>
                     </div>
                 </div>
 
                 <hr>
 
                 <div class="control-group">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label>Marcas de Sincronização</label>
-                        <button id="btnAddMarker" class="action-btn" style="width: auto; padding: 4px 12px; font-size: 0.8rem;">+ Criar Marca</button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                        <label>Marcas (M|B|S)</label>
+                        <button id="btnAddMarker" class="action-btn" style="width: auto; padding: 2px 8px; font-size: 0.75rem;">+ Criar</button>
                     </div>
-                    <div class="marker-list" id="markerList">
-                        <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; margin: 10px 0;">Nenhuma marca criada.</p>
-                    </div>
+                    <div class="marker-list" id="markerList"></div>
                 </div>
-
             </div>
         </div>
     </div>
 
     <script>
+        const wrapper = document.getElementById('appWrapper');
         const video = document.getElementById('videoPlayer');
         const videoUpload = document.getElementById('videoUpload');
         const videoNameLabel = document.getElementById('videoNameLabel');
@@ -324,16 +359,22 @@
         let isListening = false;
         let isSyncPaused = false;
         let lastTriggerTime = 0;
-        
-        // Padrão de 30 frames por segundo para o cálculo (aprox. 0.0333s por frame)
         const FPS = 30;
+
+        // --- Gerenciador de Layouts ---
+        function changeLayout(mode) {
+            wrapper.classList.remove('layout-geral', 'layout-vertical', 'layout-horizontal');
+            wrapper.classList.add('layout-' + mode);
+            
+            document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + mode).classList.add('active');
+        }
 
         // --- Core Time Math ---
         function calculateMusicalTime(timeSeconds) {
             const bpm = parseFloat(bpmInput.value) || 120;
             const beatsPerMeasure = parseInt(beatsInput.value) || 4;
             const beatUnit = parseInt(beatUnitInput.value) || 4;
-            
             const unitFactor = 4 / beatUnit; 
             const secondsPerBeat = (60 / bpm) * unitFactor;
             
@@ -349,12 +390,10 @@
         function parseMusicalTimeToSeconds(timecodeStr) {
             const parts = timecodeStr.split('|').map(Number);
             if (parts.length !== 3 || parts.some(isNaN)) return null;
-
             const [m, b, s] = parts;
             const bpm = parseFloat(bpmInput.value) || 120;
             const beatsPerMeasure = parseInt(beatsInput.value) || 4;
             const beatUnit = parseInt(beatUnitInput.value) || 4;
-            
             const unitFactor = 4 / beatUnit; 
             const secondsPerBeat = (60 / bpm) * unitFactor;
             
@@ -366,8 +405,7 @@
             const date = new Date(seconds * 1000);
             const mm = String(date.getUTCMinutes()).padStart(2, '0');
             const ss = String(date.getUTCSeconds()).padStart(2, '0');
-            const ms = String(date.getUTCMilliseconds()).padStart(3, '0');
-            return `${mm}:${ss}.${ms}`;
+            return `${mm}:${ss}`;
         }
 
         function updateVisuals() {
@@ -386,16 +424,8 @@
             }
         });
 
-        // --- Navegação Fina (Frame a Frame) ---
-        btnFrameBack.addEventListener('click', () => {
-            if (!video.paused) video.pause();
-            video.currentTime = Math.max(0, video.currentTime - (1 / FPS));
-        });
-
-        btnFrameFwd.addEventListener('click', () => {
-            if (!video.paused) video.pause();
-            video.currentTime = Math.min(video.duration || 0, video.currentTime + (1 / FPS));
-        });
+        btnFrameBack.addEventListener('click', () => { if (!video.paused) video.pause(); video.currentTime = Math.max(0, video.currentTime - (1 / FPS)); });
+        btnFrameFwd.addEventListener('click', () => { if (!video.paused) video.pause(); video.currentTime = Math.min(video.duration || 0, video.currentTime + (1 / FPS)); });
 
         btnBpmMinus.addEventListener('click', () => { bpmInput.value = Math.max(40, parseInt(bpmInput.value) - 1); renderMarkers(); });
         btnBpmPlus.addEventListener('click', () => { bpmInput.value = Math.min(300, parseInt(bpmInput.value) + 1); renderMarkers(); });
@@ -403,208 +433,118 @@
         beatsInput.addEventListener('change', renderMarkers);
         beatUnitInput.addEventListener('change', renderMarkers);
 
-        // --- Marcadores Editáveis ---
+        // --- Marcadores ---
         btnAddMarker.addEventListener('click', () => {
-            const newMarker = {
-                id: Date.now(),
-                time: video.currentTime,
-                label: `Marca ${markers.length + 1}`
-            };
-            markers.push(newMarker);
+            markers.push({ id: Date.now(), time: video.currentTime, label: `M${markers.length + 1}` });
             markers.sort((a, b) => a.time - b.time);
             renderMarkers();
         });
 
         function renderMarkers() {
             if (markers.length === 0) {
-                markerListEl.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; margin: 10px 0;">Nenhuma marca criada.</p>';
+                markerListEl.innerHTML = '<p style="color: var(--text-muted); font-size: 0.75rem; text-align: center; margin: 5px 0;">Sem marcas.</p>';
                 return;
             }
-
             markerListEl.innerHTML = '';
             markers.forEach((marker) => {
-                const musTime = calculateMusicalTime(marker.time);
-                const absTime = formatAbsTime(marker.time);
-                
                 const item = document.createElement('div');
                 item.className = 'marker-item';
                 item.innerHTML = `
                     <div class="marker-times">
-                        <input type="text" class="marker-input marker-time-input" value="${musTime}" title="Editar M|B|S" onchange="updateMarkerTime(${marker.id}, this.value)">
-                        <span class="marker-abs">${absTime}</span>
+                        <input type="text" class="marker-input marker-time-input" value="${calculateMusicalTime(marker.time)}" onchange="updateMarkerTime(${marker.id}, this.value)">
+                        <span class="marker-abs">${formatAbsTime(marker.time)}</span>
                     </div>
-                    <input type="text" class="marker-input" value="${marker.label}" onchange="updateMarkerLabel(${marker.id}, this.value)" placeholder="Nome da marca">
-                    <button class="marker-btn-go" onclick="gotoMarker(${marker.time})">Ir</button>
+                    <input type="text" class="marker-input" value="${marker.label}" onchange="updateMarkerLabel(${marker.id}, this.value)">
+                    <button class="marker-btn-go" onclick="gotoMarker(${marker.time})">➔</button>
                     <button class="marker-btn-del" onclick="deleteMarker(${marker.id})">✕</button>
                 `;
                 markerListEl.appendChild(item);
             });
         }
 
-        window.updateMarkerLabel = function(id, newLabel) {
-            const m = markers.find(x => x.id === id);
-            if(m) m.label = newLabel;
-        };
-
+        window.updateMarkerLabel = function(id, newLabel) { const m = markers.find(x => x.id === id); if(m) m.label = newLabel; };
         window.updateMarkerTime = function(id, newTimecode) {
             const newSeconds = parseMusicalTimeToSeconds(newTimecode);
             if (newSeconds !== null) {
                 const m = markers.find(x => x.id === id);
-                if(m) {
-                    m.time = newSeconds;
-                    markers.sort((a, b) => a.time - b.time); 
-                    renderMarkers();
-                }
-            } else {
-                alert("Formato inválido. Use Compasso|Tempo|Semicolcheia (ex: 3|2|1)");
-                renderMarkers(); 
-            }
+                if(m) { m.time = newSeconds; markers.sort((a, b) => a.time - b.time); renderMarkers(); }
+            } else { alert("Use M|B|S (ex: 3|2|1)"); renderMarkers(); }
         };
-
         window.gotoMarker = function(time) { video.currentTime = time; };
         window.deleteMarker = function(id) { markers = markers.filter(x => x.id !== id); renderMarkers(); };
 
-        // --- Projetos e LocalStorage ---
+        // --- Projetos ---
         function captureThumbnail() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 160;
-            canvas.height = 90;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            return canvas.toDataURL('image/jpeg', 0.5);
-        }
-
-        function formatDuration(sec) {
-            const m = Math.floor(sec / 60);
-            const s = Math.floor(sec % 60).toString().padStart(2, '0');
-            return `${m}:${s}`;
+            const canvas = document.createElement('canvas'); canvas.width = 120; canvas.height = 68;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL('image/jpeg', 0.4);
         }
 
         btnSaveProject.addEventListener('click', () => {
-            if (!currentVideoName) {
-                alert("Carregue um vídeo antes de salvar o projeto.");
-                return;
-            }
-
-            const thumbBase64 = captureThumbnail();
+            if (!currentVideoName) { alert("Carregue um vídeo primeiro."); return; }
             const newProject = {
                 id: Date.now(),
                 date: new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }),
                 videoName: currentVideoName,
-                duration: formatDuration(video.duration || 0),
-                thumbnail: thumbBase64,
-                bpm: bpmInput.value,
-                beatsPerMeasure: beatsInput.value,
-                beatUnit: beatUnitInput.value,
-                markers: [...markers]
+                duration: formatAbsTime(video.duration || 0),
+                thumbnail: captureThumbnail(),
+                bpm: bpmInput.value, beatsPerMeasure: beatsInput.value, beatUnit: beatUnitInput.value, markers: [...markers]
             };
-
-            let savedProjects = JSON.parse(localStorage.getItem('gl_projects') || '[]');
-            savedProjects.unshift(newProject);
-            if (savedProjects.length > 5) savedProjects = savedProjects.slice(0, 5);
-            
-            localStorage.setItem('gl_projects', JSON.stringify(savedProjects));
+            let saved = JSON.parse(localStorage.getItem('gl_projects') || '[]');
+            saved.unshift(newProject);
+            if (saved.length > 5) saved = saved.slice(0, 5);
+            localStorage.setItem('gl_projects', JSON.stringify(saved));
             renderProjects();
-            
-            const oldText = btnSaveProject.innerText;
-            btnSaveProject.innerText = "✓ Salvo!";
-            btnSaveProject.style.backgroundColor = "#27ae60";
-            setTimeout(() => {
-                btnSaveProject.innerText = oldText;
-                btnSaveProject.style.backgroundColor = "var(--primary)";
-            }, 2000);
         });
 
         function renderProjects() {
-            const savedProjects = JSON.parse(localStorage.getItem('gl_projects') || '[]');
-            if (savedProjects.length === 0) return;
-
+            const saved = JSON.parse(localStorage.getItem('gl_projects') || '[]');
+            if (saved.length === 0) return;
             projectsContainer.innerHTML = '';
-            savedProjects.forEach(proj => {
-                const card = document.createElement('div');
-                card.className = 'project-card';
-                card.onclick = () => loadProject(proj);
-                card.innerHTML = `
-                    <div class="project-thumb" style="background-image: url('${proj.thumbnail}')">
-                        <span class="project-dur">${proj.duration}</span>
-                    </div>
-                    <div class="project-info">
-                        <div class="project-title" title="${proj.videoName}">${proj.videoName}</div>
-                        <div class="project-date">${proj.date}</div>
-                    </div>
-                `;
+            saved.forEach(proj => {
+                const card = document.createElement('div'); card.className = 'project-card';
+                card.onclick = () => {
+                    bpmInput.value = proj.bpm; beatsInput.value = proj.beatsPerMeasure; beatUnitInput.value = proj.beatUnit;
+                    markers = proj.markers || []; currentVideoName = proj.videoName; renderMarkers();
+                    videoNameLabel.style.display = 'block';
+                    videoNameLabel.innerHTML = `Carregado. <strong style="color:var(--primary)">Selecione: ${proj.videoName}</strong>`;
+                };
+                card.innerHTML = `<div class="project-thumb" style="background-image:url('${proj.thumbnail}')"><span class="project-dur">${proj.duration}</span></div>
+                                  <div class="project-info"><div class="project-title">${proj.videoName}</div></div>`;
                 projectsContainer.appendChild(card);
             });
         }
-
-        function loadProject(proj) {
-            bpmInput.value = proj.bpm;
-            beatsInput.value = proj.beatsPerMeasure;
-            beatUnitInput.value = proj.beatUnit;
-            markers = proj.markers || [];
-            currentVideoName = proj.videoName;
-            
-            renderMarkers();
-            videoNameLabel.style.display = 'block';
-            videoNameLabel.innerHTML = `Projeto carregado. <strong style="color:var(--primary)">Selecione o arquivo de vídeo: ${proj.videoName}</strong>`;
-            videoUpload.focus();
-            window.scrollTo(0, 0);
-        }
-
         renderProjects();
 
-        // --- Microfone / Gatilho ---
+        // --- Gatilho de Áudio ---
         thresholdSlider.addEventListener('input', (e) => { micMarker.style.left = `${e.target.value}%`; });
-
         btnToggleSync.addEventListener('click', () => {
             isSyncPaused = !isSyncPaused;
-            if (isSyncPaused) {
-                btnToggleSync.innerText = "Retomar Sinc.";
-                btnToggleSync.classList.add('paused');
-            } else {
-                btnToggleSync.innerText = "Pausar Sinc.";
-                btnToggleSync.classList.remove('paused');
-            }
+            btnToggleSync.innerText = isSyncPaused ? "Retomar" : "Pausar Sinc.";
+            btnToggleSync.classList.toggle('paused', isSyncPaused);
         });
 
         btnStartMic.addEventListener('click', async () => {
             if (isListening) return;
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                analyser.fftSize = 256;
-                const microphone = audioContext.createMediaStreamSource(stream);
-                microphone.connect(analyser);
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new AudioContext(); analyser = audioContext.createAnalyser(); analyser.fftSize = 256;
+                audioContext.createMediaStreamSource(stream).connect(analyser);
                 dataArray = new Uint8Array(analyser.frequencyBinCount);
-                
-                isListening = true;
-                btnStartMic.style.display = "none";
-                btnToggleSync.style.display = "block";
-                
+                isListening = true; btnStartMic.style.display = "none"; btnToggleSync.style.display = "block";
                 monitorAudio();
-            } catch (err) {
-                console.error("Erro no Microfone", err);
-            }
+            } catch (err) { console.error(err); }
         });
 
         function monitorAudio() {
             if (!isListening) return;
             analyser.getByteFrequencyData(dataArray);
-            
-            let sum = 0;
-            for(let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-            let volumePercent = (sum / dataArray.length / 255) * 100 * 2.5; 
-            if(volumePercent > 100) volumePercent = 100;
-
-            micLevelBar.style.width = `${volumePercent}%`;
-
-            const threshold = parseInt(thresholdSlider.value);
+            let sum = 0; for(let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            let volumePercent = (sum / dataArray.length / 255) * 250;
+            micLevelBar.style.width = `${Math.min(100, volumePercent)}%`;
             const now = Date.now();
-
-            if (volumePercent > threshold && video.paused && !isSyncPaused && (now - lastTriggerTime > 1000)) {
-                video.play();
-                lastTriggerTime = now;
+            if (volumePercent > parseInt(thresholdSlider.value) && video.paused && !isSyncPaused && (now - lastTriggerTime > 1000)) {
+                video.play(); lastTriggerTime = now;
                 micLevelBar.style.backgroundColor = 'var(--accent)';
                 setTimeout(() => micLevelBar.style.backgroundColor = 'var(--primary)', 300);
             }
