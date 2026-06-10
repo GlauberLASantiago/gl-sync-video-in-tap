@@ -636,7 +636,7 @@
             border-radius: 5px;
             padding: 5px 7px;
             display: grid;
-            grid-template-columns: 70px 1fr auto;
+            grid-template-columns: 120px 1fr auto;
             gap: 5px;
             align-items: center;
             transition: all 0.15s ease;
@@ -824,6 +824,53 @@
         .controls-side::-webkit-scrollbar-thumb {
             background: var(--border-active);
         }
+
+        /* ── Simple Credits Block ── */
+        .simple-footer {
+            text-align: center;
+            padding: 0.6rem 1rem;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.25);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .simple-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.15s;
+            font-weight: 600;
+        }
+
+        .simple-footer a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        .btn-help-trigger {
+            background: rgba(45, 138, 78, 0.15);
+            border: 1px solid rgba(45, 138, 78, 0.3);
+            color: var(--primary);
+            font-weight: bold;
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 0.68rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-help-trigger:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
     </style>
 </head>
 
@@ -877,25 +924,45 @@
 
                 <!-- Marks Section Directly Below Video -->
                 <div class="video-markers" style="margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label class="field-label" style="margin: 0; display: flex; align-items: center; gap: 6px;">
-                            <span>🔖</span> Marcas <span class="section-badge" id="markerBadge" style="display:none; margin-left: 4px;">0</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                        <label class="field-label" style="margin: 0; display: flex; align-items: center; gap: 4px;">
+                            <span>🔖</span> Marcas
                         </label>
-                        <button class="btn btn-accent btn-sm" id="btnAddMarker" style="width: auto; padding: 3px 10px;">+ Criar Marca no Tempo Atual</button>
+                        <div style="display: flex; gap: 4px;">
+                            <button class="btn btn-accent btn-sm" id="btnAddMarker" style="width: auto; padding: 3px 8px;" title="Criar Marca Pontual (Atalho: M)">+ Pontual</button>
+                            <button class="btn btn-sm" id="btnContinuousMarker" style="width: auto; padding: 3px 8px; background: #c85a3c; color: white;" title="Iniciar/Parar Marca Contínua (Atalho: C)">+ Contínua</button>
+                        </div>
                     </div>
                     
                     <!-- Audio trigger control for marks -->
                     <div style="display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.25); padding: 5px 8px; border-radius: 5px; border: 1px solid var(--border-active);">
                         <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Som das Marcas:</span>
                         <div class="layout-selector" style="margin-left: auto;">
-                            <button class="layout-btn active" id="btnAudioOff" onclick="setMarkerAudio('off')">Desativado</button>
-                            <button class="layout-btn" id="btnAudioShort" onclick="setMarkerAudio('short')">Curto</button>
-                            <button class="layout-btn" id="btnAudioLong" onclick="setMarkerAudio('long')">Longo</button>
+                            <button class="layout-btn active" id="btnAudioOff" onclick="setMarkerAudio(false)">Desativado</button>
+                            <button class="layout-btn" id="btnAudioOn" onclick="setMarkerAudio(true)">Ativado</button>
                         </div>
                     </div>
 
-                    <div class="marker-list" id="markerList" style="max-height: 250px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border); border-radius: 6px; padding: 6px;">
-                        <p class="empty-state" style="padding: 10px 0;">Sem marcas. Clique em "Criar" durante a reprodução.</p>
+                    <!-- Marcas Pontuais -->
+                    <div style="display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--border); border-radius: 6px; padding: 6px; background: rgba(0, 0, 0, 0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                            <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">📍 Pontuais</span>
+                            <span class="section-badge" id="markerBadgePunctual" style="display:none; background: var(--accent); margin-left: 4px;">0</span>
+                        </div>
+                        <div class="marker-list" id="markerListPunctual" style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
+                            <p class="empty-state" style="padding: 10px 0;">Sem marcas pontuais.</p>
+                        </div>
+                    </div>
+
+                    <!-- Marcas Contínuas -->
+                    <div style="display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--border); border-radius: 6px; padding: 6px; background: rgba(0, 0, 0, 0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                            <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">〰 Contínuas</span>
+                            <span class="section-badge" id="markerBadgeContinuous" style="display:none; background: #c85a3c; margin-left: 4px;">0</span>
+                        </div>
+                        <div class="marker-list" id="markerListContinuous" style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
+                            <p class="empty-state" style="padding: 10px 0;">Sem marcas contínuas.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1024,8 +1091,15 @@
 
 
 
-            </div>
         </div>
+
+        <footer class="simple-footer">
+            <span>Desenvolvido pelo professor Glauber Santiago — DAC/UFSCar</span>
+            <a href="http://servidores.ufscar.br/glauber/" target="_blank">servidores.ufscar.br/glauber/</a>
+            <span>•</span>
+            <a href="https://sites.google.com/view/glauberia" target="_blank">sites.google.com/view/glauberia</a>
+            <button class="btn-help-trigger" onclick="openHelpWindow()">📖 Guia de Uso & Atalhos</button>
+        </footer>
     </div>
 
     <script>
@@ -1051,19 +1125,23 @@
         const btnFrameBack = document.getElementById('btnFrameBack');
         const btnFrameFwd = document.getElementById('btnFrameFwd');
         const btnAddMarker = document.getElementById('btnAddMarker');
-        const markerListEl = document.getElementById('markerList');
+        const btnContinuousMarker = document.getElementById('btnContinuousMarker');
+        const markerListPunctualEl = document.getElementById('markerListPunctual');
+        const markerListContinuousEl = document.getElementById('markerListContinuous');
         const projectNameInput = document.getElementById('projectNameInput');
         const statusPill = document.getElementById('statusPill');
         const statusText = document.getElementById('statusText');
         const micStatusPill = document.getElementById('micStatusPill');
         const micStatusText = document.getElementById('micStatusText');
-        const markerBadge = document.getElementById('markerBadge');
+        const markerBadgePunctual = document.getElementById('markerBadgePunctual');
+        const markerBadgeContinuous = document.getElementById('markerBadgeContinuous');
 
 
         let currentVideoName = "";
         let markers = [];
         let selectedMarkerId = null;
         let editingMarkerId = null;
+        let tempContinuousStart = null;
         let audioContext, analyser, dataArray;
         let isListening = false;
         let isSyncPaused = false;
@@ -1125,7 +1203,6 @@
 
         let lastVideoTime = 0;
         let markerAudioEnabled = false;
-        let markerAudioType = 'off'; // 'off', 'short', 'long'
         let soundAudioCtx = null;
 
         function initSoundAudioCtx() {
@@ -1142,7 +1219,7 @@
             document.addEventListener(evt, initSoundAudioCtx, { once: true });
         });
 
-        function playMarkerSound() {
+        function playMarkerSound(type) {
             initSoundAudioCtx();
             if (!soundAudioCtx) return;
             
@@ -1151,14 +1228,14 @@
             osc.connect(gainNode);
             gainNode.connect(soundAudioCtx.destination);
             
-            if (markerAudioType === 'short') {
+            if (type === 'pontual') {
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(800, soundAudioCtx.currentTime);
                 gainNode.gain.setValueAtTime(0.8, soundAudioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.001, soundAudioCtx.currentTime + 0.08);
                 osc.start();
                 osc.stop(soundAudioCtx.currentTime + 0.08);
-            } else if (markerAudioType === 'long') {
+            } else if (type === 'continuo') {
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(440, soundAudioCtx.currentTime); // A4
                 gainNode.gain.setValueAtTime(0, soundAudioCtx.currentTime);
@@ -1169,22 +1246,14 @@
             }
         }
 
-        function setMarkerAudio(mode) {
-            document.querySelectorAll('#btnAudioOff, #btnAudioShort, #btnAudioLong').forEach(b => b.classList.remove('active'));
-            
+        function setMarkerAudio(enabled) {
+            markerAudioEnabled = enabled;
+            document.getElementById('btnAudioOff').classList.toggle('active', !enabled);
+            document.getElementById('btnAudioOn').classList.toggle('active', enabled);
             initSoundAudioCtx();
-
-            if (mode === 'off') {
-                markerAudioEnabled = false;
-                markerAudioType = 'off';
-                document.getElementById('btnAudioOff').classList.add('active');
-            } else {
-                markerAudioEnabled = true;
-                markerAudioType = mode;
-                document.getElementById(mode === 'short' ? 'btnAudioShort' : 'btnAudioLong').classList.add('active');
-                
-                // Play preview
-                playMarkerSound();
+            if (enabled) {
+                // Play quick preview (short click)
+                playMarkerSound('pontual');
             }
         }
         window.setMarkerAudio = setMarkerAudio;
@@ -1216,7 +1285,7 @@
                 if (currTime > effectiveLastTime && (currTime - effectiveLastTime < 0.5)) {
                     markers.forEach(m => {
                         if (effectiveLastTime < m.time && currTime >= m.time) {
-                            playMarkerSound();
+                            playMarkerSound(m.type);
                         }
                     });
                 }
@@ -1246,13 +1315,25 @@
         // ── Frame Navigation ──
         function jumpFrames(n) {
             if (!video.paused) video.pause();
-            const newTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + n / FPS));
+            const oldTime = video.currentTime;
+            const newTime = Math.max(0, Math.min(video.duration || 0, oldTime + n / FPS));
             video.currentTime = newTime;
 
             if (selectedMarkerId !== null) {
                 const marker = markers.find(m => m.id === selectedMarkerId);
                 if (marker) {
-                    marker.time = newTime;
+                    if (marker.type === 'pontual') {
+                        marker.time = newTime;
+                    } else {
+                        // Proximity-based adjustment for continuous event boundaries
+                        const distStart = Math.abs(oldTime - marker.time);
+                        const distEnd = Math.abs(oldTime - marker.timeEnd);
+                        if (distStart < distEnd) {
+                            marker.time = newTime;
+                        } else {
+                            marker.timeEnd = newTime;
+                        }
+                    }
                     markers.sort((a, b) => a.time - b.time);
                     renderMarkers();
                 }
@@ -1270,26 +1351,97 @@
 
         // ── Markers ──
         btnAddMarker.addEventListener('click', () => {
-            const newMarker = { id: Date.now(), time: video.currentTime, label: `M${markers.length + 1}` };
+            const nextNum = markers.filter(x => x.type === 'pontual').length + 1;
+            const newMarker = {
+                id: Date.now(),
+                type: 'pontual',
+                time: video.currentTime,
+                label: `M${nextNum}`
+            };
             markers.push(newMarker);
             markers.sort((a, b) => a.time - b.time);
             selectedMarkerId = newMarker.id; // Automatically select the newly created marker
             renderMarkers();
         });
 
-        function renderMarkers() {
-            markerBadge.style.display = markers.length ? 'inline' : 'none';
-            markerBadge.textContent = markers.length;
-            if (markers.length === 0) {
-                markerListEl.innerHTML = '<p class="empty-state">Sem marcas. Clique em "Criar" durante a reprodução.</p>';
-                return;
-            }
-            markerListEl.innerHTML = '';
-            markers.forEach((marker) => {
-                const item = document.createElement('div');
-                item.className = 'marker-item' + (selectedMarkerId === marker.id ? ' selected' : '');
-                item.style.cursor = 'pointer';
+        // Continuous marker recording logic
+        function toggleContinuousMarker() {
+            if (tempContinuousStart === null) {
+                // Start recording
+                tempContinuousStart = video.currentTime;
+                const nextNum = markers.filter(m => m.type === 'continuo').length + 1;
+                btnContinuousMarker.textContent = `■ Parar Contínua (L${nextNum})`;
+                btnContinuousMarker.style.background = '#d9534f'; // pulsing red
+                btnContinuousMarker.classList.add('recording');
+            } else {
+                // Stop recording
+                let start = tempContinuousStart;
+                let end = video.currentTime;
+                tempContinuousStart = null;
+                btnContinuousMarker.textContent = '+ Contínua';
+                btnContinuousMarker.style.background = '#c85a3c'; // terracotta
+                btnContinuousMarker.classList.remove('recording');
 
+                if (end < start) {
+                    const temp = start;
+                    start = end;
+                    end = temp;
+                }
+
+                if (Math.abs(end - start) < 0.033) {
+                    alert("A duração do evento contínuo deve ser de pelo menos 1 frame!");
+                    return;
+                }
+
+                const nextNum = markers.filter(m => m.type === 'continuo').length + 1;
+                const newMarker = {
+                    id: Date.now(),
+                    type: 'continuo',
+                    time: start,
+                    timeEnd: end,
+                    label: `L${nextNum}`
+                };
+                markers.push(newMarker);
+                markers.sort((a, b) => a.time - b.time);
+                selectedMarkerId = newMarker.id; // Automatically select
+                renderMarkers();
+            }
+        }
+        btnContinuousMarker.addEventListener('click', toggleContinuousMarker);
+
+        function renderMarkers() {
+            // Filter subsets
+            const punctualMarkers = markers.filter(m => m.type === 'pontual');
+            const continuousMarkers = markers.filter(m => m.type === 'continuo');
+
+            // Update badges
+            markerBadgePunctual.style.display = punctualMarkers.length ? 'inline-block' : 'none';
+            markerBadgePunctual.textContent = punctualMarkers.length;
+            markerBadgeContinuous.style.display = continuousMarkers.length ? 'inline-block' : 'none';
+            markerBadgeContinuous.textContent = continuousMarkers.length;
+
+            // Render lists
+            if (punctualMarkers.length === 0) {
+                markerListPunctualEl.innerHTML = '<p class="empty-state">Sem marcas pontuais.</p>';
+            } else {
+                markerListPunctualEl.innerHTML = '';
+                punctualMarkers.forEach(marker => renderMarkerItem(marker, markerListPunctualEl));
+            }
+
+            if (continuousMarkers.length === 0) {
+                markerListContinuousEl.innerHTML = '<p class="empty-state">Sem marcas contínuas.</p>';
+            } else {
+                markerListContinuousEl.innerHTML = '';
+                continuousMarkers.forEach(marker => renderMarkerItem(marker, markerListContinuousEl));
+            }
+        }
+
+        function renderMarkerItem(marker, containerEl) {
+            const item = document.createElement('div');
+            item.className = 'marker-item' + (selectedMarkerId === marker.id ? ' selected' : '');
+            item.style.cursor = 'pointer';
+
+            if (marker.type === 'pontual') {
                 item.innerHTML = `
                     <div class="marker-times">
                         <input type="text" class="marker-input marker-time-input" value="${calculateMusicalTime(marker.time)}" readonly style="cursor: pointer;">
@@ -1298,123 +1450,181 @@
                     <input type="text" class="marker-input marker-label-input" value="${marker.label}" readonly placeholder="Nome" style="cursor: pointer;">
                     <button class="btn btn-sm btn-danger btn-delete-marker" style="width: auto;">✕</button>
                 `;
+            } else {
+                item.innerHTML = `
+                    <div class="marker-times-range" style="display: flex; flex-direction: column; gap: 2px; width: 120px;">
+                        <div class="marker-times-row" style="display: flex; align-items: center; gap: 4px; width: 100%;">
+                            <span style="font-size: 0.52rem; color: var(--text-muted); text-transform: uppercase; width: 22px;">Ini:</span>
+                            <input type="text" class="marker-input marker-time-input" value="${calculateMusicalTime(marker.time)}" readonly style="cursor: pointer; font-size: 0.72rem; width: 48px; padding: 1px 2px;">
+                            <span class="marker-abs" style="font-size: 0.52rem; opacity: 0.7; width: 44px; text-align: right;">${formatAbsTime(marker.time)}</span>
+                        </div>
+                        <div class="marker-times-row" style="display: flex; align-items: center; gap: 4px; width: 100%;">
+                            <span style="font-size: 0.52rem; color: var(--text-muted); text-transform: uppercase; width: 22px;">Fim:</span>
+                            <input type="text" class="marker-input marker-time-end-input" value="${calculateMusicalTime(marker.timeEnd)}" readonly style="cursor: pointer; font-size: 0.72rem; width: 48px; padding: 1px 2px;">
+                            <span class="marker-abs" style="font-size: 0.52rem; opacity: 0.7; width: 44px; text-align: right;">${formatAbsTime(marker.timeEnd)}</span>
+                        </div>
+                    </div>
+                    <input type="text" class="marker-input marker-label-input" value="${marker.label}" readonly placeholder="Nome" style="cursor: pointer;">
+                    <button class="btn btn-sm btn-danger btn-delete-marker" style="width: auto;">✕</button>
+                `;
+            }
 
-                const timeInput = item.querySelector('.marker-time-input');
-                const labelInput = item.querySelector('.marker-label-input');
-                const delBtn = item.querySelector('.btn-delete-marker');
+            const timeInput = item.querySelector('.marker-time-input');
+            const labelInput = item.querySelector('.marker-label-input');
+            const timeEndInput = item.querySelector('.marker-time-end-input'); // null for punctual
+            const delBtn = item.querySelector('.btn-delete-marker');
 
-                // Prevent focus caret and keyboard on single click if readonly
-                const preventFocusIfReadonly = (e) => {
-                    if (e.target.hasAttribute('readonly')) {
-                        e.preventDefault();
-                    }
-                };
-                timeInput.addEventListener('mousedown', preventFocusIfReadonly);
-                labelInput.addEventListener('mousedown', preventFocusIfReadonly);
-                timeInput.addEventListener('touchstart', preventFocusIfReadonly);
-                labelInput.addEventListener('touchstart', preventFocusIfReadonly);
+            // Prevent focus caret and keyboard on single click if readonly
+            const preventFocusIfReadonly = (e) => {
+                if (e.target.hasAttribute('readonly')) {
+                    e.preventDefault();
+                }
+            };
+            timeInput.addEventListener('mousedown', preventFocusIfReadonly);
+            labelInput.addEventListener('mousedown', preventFocusIfReadonly);
+            timeInput.addEventListener('touchstart', preventFocusIfReadonly);
+            labelInput.addEventListener('touchstart', preventFocusIfReadonly);
+            if (timeEndInput) {
+                timeEndInput.addEventListener('mousedown', preventFocusIfReadonly);
+                timeEndInput.addEventListener('touchstart', preventFocusIfReadonly);
+            }
 
-                // Delete button handler
-                delBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    deleteMarker(marker.id);
-                });
-
-                // Click handler for selection/deselection
-                const handleItemClick = (e) => {
-                    if (editingMarkerId !== null) return;
-                    
-                    if (selectedMarkerId === marker.id) {
-                        selectedMarkerId = null;
-                        item.classList.remove('selected');
-                    } else {
-                        selectedMarkerId = marker.id;
-                        video.currentTime = marker.time;
-                        document.querySelectorAll('.marker-item').forEach(el => el.classList.remove('selected'));
-                        item.classList.add('selected');
-                    }
-                };
-                
-                item.addEventListener('click', handleItemClick);
-
-                // Double click handler for manual editing
-                const handleDblClick = (e) => {
-                    if (editingMarkerId !== null) return;
-                    
-                    editingMarkerId = marker.id;
-                    selectedMarkerId = marker.id;
-                    document.querySelectorAll('.marker-item').forEach(el => {
-                        if (el !== item) el.classList.remove('selected', 'editing');
-                    });
-                    item.classList.add('selected', 'editing');
-
-                    timeInput.removeAttribute('readonly');
-                    labelInput.removeAttribute('readonly');
-                    timeInput.style.cursor = 'text';
-                    labelInput.style.cursor = 'text';
-
-                    timeInput.style.borderBottom = '1px dashed #e5c158';
-                    labelInput.style.borderBottom = '1px dashed #e5c158';
-
-                    if (e.target === labelInput) {
-                        labelInput.focus();
-                        labelInput.select();
-                    } else {
-                        timeInput.focus();
-                        timeInput.select();
-                    }
-
-                    let saved = false;
-                    const saveEdits = () => {
-                        if (saved || editingMarkerId !== marker.id) return;
-                        saved = true;
-                        
-                        editingMarkerId = null;
-                        item.classList.remove('editing');
-                        timeInput.setAttribute('readonly', true);
-                        labelInput.setAttribute('readonly', true);
-                        timeInput.style.cursor = 'pointer';
-                        labelInput.style.cursor = 'pointer';
-                        timeInput.style.borderBottom = 'none';
-                        labelInput.style.borderBottom = 'none';
-
-                        const newTimeStr = timeInput.value;
-                        const newLabel = labelInput.value;
-
-                        marker.label = newLabel;
-
-                        const sec = parseMusicalTimeToSeconds(newTimeStr);
-                        if (sec !== null) {
-                            marker.time = sec;
-                            markers.sort((a, b) => a.time - b.time);
-                        } else {
-                            alert("Formato de tempo musical inválido! Use: Compasso|Tempo|Subdivisão (ex: 3|2|1)");
-                        }
-
-                        renderMarkers();
-                    };
-
-                    const handleKeyDown = (evt) => {
-                        if (evt.key === 'Enter') {
-                            evt.preventDefault();
-                            saveEdits();
-                        } else if (evt.key === 'Escape') {
-                            evt.preventDefault();
-                            editingMarkerId = null;
-                            renderMarkers();
-                        }
-                    };
-
-                    timeInput.addEventListener('blur', saveEdits, { once: true });
-                    labelInput.addEventListener('blur', saveEdits, { once: true });
-                    timeInput.addEventListener('keydown', handleKeyDown);
-                    labelInput.addEventListener('keydown', handleKeyDown);
-                };
-
-                item.addEventListener('dblclick', handleDblClick);
-
-                markerListEl.appendChild(item);
+            // Delete button handler
+            delBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteMarker(marker.id);
             });
+
+            // Click handler for selection/deselection
+            const handleItemClick = (e) => {
+                if (editingMarkerId !== null) return;
+                
+                if (selectedMarkerId === marker.id) {
+                    selectedMarkerId = null;
+                    item.classList.remove('selected');
+                } else {
+                    selectedMarkerId = marker.id;
+                    video.currentTime = marker.time;
+                    document.querySelectorAll('.marker-item').forEach(el => el.classList.remove('selected'));
+                    item.classList.add('selected');
+                }
+            };
+            
+            item.addEventListener('click', handleItemClick);
+
+            // Double click handler for manual editing
+            const handleDblClick = (e) => {
+                if (editingMarkerId !== null) return;
+                
+                editingMarkerId = marker.id;
+                selectedMarkerId = marker.id;
+                document.querySelectorAll('.marker-item').forEach(el => {
+                    if (el !== item) el.classList.remove('selected', 'editing');
+                });
+                item.classList.add('selected', 'editing');
+
+                timeInput.removeAttribute('readonly');
+                labelInput.removeAttribute('readonly');
+                timeInput.style.cursor = 'text';
+                labelInput.style.cursor = 'text';
+
+                timeInput.style.borderBottom = '1px dashed #e5c158';
+                labelInput.style.borderBottom = '1px dashed #e5c158';
+
+                if (timeEndInput) {
+                    timeEndInput.removeAttribute('readonly');
+                    timeEndInput.style.cursor = 'text';
+                    timeEndInput.style.borderBottom = '1px dashed #e5c158';
+                }
+
+                if (e.target === labelInput) {
+                    labelInput.focus();
+                    labelInput.select();
+                } else if (timeEndInput && e.target === timeEndInput) {
+                    timeEndInput.focus();
+                    timeEndInput.select();
+                } else {
+                    timeInput.focus();
+                    timeInput.select();
+                }
+
+                let saved = false;
+                const saveEdits = () => {
+                    if (saved || editingMarkerId !== marker.id) return;
+                    saved = true;
+                    
+                    editingMarkerId = null;
+                    item.classList.remove('editing');
+                    timeInput.setAttribute('readonly', true);
+                    labelInput.setAttribute('readonly', true);
+                    timeInput.style.cursor = 'pointer';
+                    labelInput.style.cursor = 'pointer';
+                    timeInput.style.borderBottom = 'none';
+                    labelInput.style.borderBottom = 'none';
+
+                    if (timeEndInput) {
+                        timeEndInput.setAttribute('readonly', true);
+                        timeEndInput.style.cursor = 'pointer';
+                        timeEndInput.style.borderBottom = 'none';
+                    }
+
+                    const newTimeStr = timeInput.value;
+                    const newLabel = labelInput.value;
+
+                    marker.label = newLabel;
+
+                    const secStart = parseMusicalTimeToSeconds(newTimeStr);
+                    if (secStart !== null) {
+                        marker.time = secStart;
+                    } else {
+                        alert("Formato de tempo de início musical inválido!");
+                    }
+
+                    if (timeEndInput) {
+                        const newTimeEndStr = timeEndInput.value;
+                        const secEnd = parseMusicalTimeToSeconds(newTimeEndStr);
+                        if (secEnd !== null) {
+                            marker.timeEnd = secEnd;
+                        } else {
+                            alert("Formato de tempo de fim musical inválido!");
+                        }
+
+                        // Keep start <= end
+                        if (marker.time > marker.timeEnd) {
+                            const temp = marker.time;
+                            marker.time = marker.timeEnd;
+                            marker.timeEnd = temp;
+                        }
+                    }
+
+                    markers.sort((a, b) => a.time - b.time);
+                    renderMarkers();
+                };
+
+                const handleKeyDown = (evt) => {
+                    if (evt.key === 'Enter') {
+                        evt.preventDefault();
+                        saveEdits();
+                    } else if (evt.key === 'Escape') {
+                        evt.preventDefault();
+                        editingMarkerId = null;
+                        renderMarkers();
+                    }
+                };
+
+                timeInput.addEventListener('blur', saveEdits, { once: true });
+                labelInput.addEventListener('blur', saveEdits, { once: true });
+                timeInput.addEventListener('keydown', handleKeyDown);
+                labelInput.addEventListener('keydown', handleKeyDown);
+                if (timeEndInput) {
+                    timeEndInput.addEventListener('blur', saveEdits, { once: true });
+                    timeEndInput.addEventListener('keydown', handleKeyDown);
+                }
+            };
+
+            item.addEventListener('dblclick', handleDblClick);
+
+            containerEl.appendChild(item);
         }
 
         window.deleteMarker = (id) => {
@@ -1444,58 +1654,54 @@
             const typeMap = { 2: 'half', 4: 'quarter', 8: 'eighth', 16: '16th' };
             const beatUnitStr = typeMap[beatType] || 'quarter';
 
-            // Calculate divisions and seconds
-            const divisions = 4; // We use 4 divisions per quarter note
+            const divisions = 4; // 4 divisions per quarter note
             const divisionsPerMeasure = beats * (4 / beatType) * divisions;
             const unitFactor = 4 / beatType;
             const secondsPerBeat = (60 / bpm) * unitFactor;
             const secondsPerDivision = (60 / bpm) / divisions;
 
-            // Map all markers to measure and division index
-            const markerPositions = markers.map(m => {
+            // Group punctual markers by measure number
+            const punctualMarkers = markers.filter(m => m.type === 'pontual');
+            const punctualByMeasure = {};
+            punctualMarkers.forEach(m => {
                 const totalDivisions = Math.round(m.time / secondsPerDivision);
-                const measure = Math.floor(totalDivisions / divisionsPerMeasure) + 1;
+                const measureNum = Math.floor(totalDivisions / divisionsPerMeasure) + 1;
                 const divisionIndex = totalDivisions % divisionsPerMeasure;
-                return {
-                    measure,
+                if (!punctualByMeasure[measureNum]) {
+                    punctualByMeasure[measureNum] = [];
+                }
+                punctualByMeasure[measureNum].push({
                     divisionIndex,
                     label: m.label
-                };
+                });
             });
 
-            // Determine total number of measures
-            let lastMarkerMeasure = 1;
-            if (markerPositions.length > 0) {
-                lastMarkerMeasure = Math.max(...markerPositions.map(mp => mp.measure));
+            // Sort punctual markers inside each measure
+            for (const mNum in punctualByMeasure) {
+                punctualByMeasure[mNum].sort((a, b) => a.divisionIndex - b.divisionIndex);
             }
+
+            // Determine total number of measures (covering both punctual and continuous)
+            let lastMarkerMeasure = 1;
+            markers.forEach(m => {
+                const t = m.type === 'continuo' ? m.timeEnd : m.time;
+                const totalDivisions = Math.round(t / secondsPerDivision);
+                const measure = Math.floor(totalDivisions / divisionsPerMeasure) + 1;
+                lastMarkerMeasure = Math.max(lastMarkerMeasure, measure);
+            });
             
-            // If video is loaded, estimate measures from video duration
             const videoDuration = video.duration || 0;
             const secondsPerMeasure = secondsPerBeat * beats;
             const estimatedMeasures = videoDuration > 0 ? Math.ceil(videoDuration / secondsPerMeasure) : 1;
             const numMeasures = Math.max(estimatedMeasures, lastMarkerMeasure);
 
-            // Group marker positions by measure number
-            const markersByMeasure = {};
-            markerPositions.forEach(mp => {
-                if (!markersByMeasure[mp.measure]) {
-                    markersByMeasure[mp.measure] = [];
-                }
-                markersByMeasure[mp.measure].push(mp);
-            });
-
-            // Sort markers in each measure by divisionIndex ascending
-            for (const mNum in markersByMeasure) {
-                markersByMeasure[mNum].sort((a, b) => a.divisionIndex - b.divisionIndex);
-            }
-
             // Function to generate rests XML
             function getRestsXml(gap) {
-                let xml = '';
+                let restXml = '';
                 let remaining = gap;
                 while (remaining > 0) {
                     if (remaining >= 4) {
-                        xml += `
+                        restXml += `
       <note>
         <rest/>
         <duration>4</duration>
@@ -1504,7 +1710,7 @@
       </note>`;
                         remaining -= 4;
                     } else if (remaining >= 2) {
-                        xml += `
+                        restXml += `
       <note>
         <rest/>
         <duration>2</duration>
@@ -1513,7 +1719,7 @@
       </note>`;
                         remaining -= 2;
                     } else {
-                        xml += `
+                        restXml += `
       <note>
         <rest/>
         <duration>1</duration>
@@ -1523,30 +1729,72 @@
                         remaining -= 1;
                     }
                 }
-                return xml;
+                return restXml;
             }
 
-            // Generate header
-            let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
-<score-partwise version="4.0">
-  <work>
-    <work-title>${projectNameInput.value || 'Projeto GL'}</work-title>
-  </work>
-  <part-list>
-    <score-part id="P1">
-      <part-name>Sync Track</part-name>
-    </score-part>
-  </part-list>
-  <part id="P1">`;
+            // Function to generate tied notes XML
+            function getNotesXml(dur, isStartTied, isEndTied) {
+                let remaining = dur;
+                let pieces = [];
+                while (remaining > 0) {
+                    if (remaining >= 4) {
+                        pieces.push({ dur: 4, type: 'quarter' });
+                        remaining -= 4;
+                    } else if (remaining >= 2) {
+                        pieces.push({ dur: 2, type: 'eighth' });
+                        remaining -= 2;
+                    } else {
+                        pieces.push({ dur: 1, type: '16th' });
+                        remaining -= 1;
+                    }
+                }
 
+                let noteXml = '';
+                for (let i = 0; i < pieces.length; i++) {
+                    const piece = pieces[i];
+                    const tieStart = (i < pieces.length - 1) || isEndTied;
+                    const tieStop = (i > 0) || isStartTied;
+
+                    noteXml += `
+      <note>
+        <pitch>
+          <step>B</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>${piece.dur}</duration>
+        <voice>1</voice>
+        <type>${piece.type}</type>
+        <stem>down</stem>`;
+                    
+                    if (tieStart) noteXml += `
+        <tie type="start"/>`;
+                    if (tieStop) noteXml += `
+        <tie type="stop"/>`;
+                    
+                    if (tieStart || tieStop) {
+                        noteXml += `
+        <notations>`;
+                        if (tieStart) noteXml += `
+          <tied type="start"/>`;
+                        if (tieStop) noteXml += `
+          <tied type="stop"/>`;
+                        noteXml += `
+        </notations>`;
+                    }
+                    noteXml += `
+      </note>`;
+                }
+                return noteXml;
+            }
+
+            // Generate Part 1 (Punctual)
+            let p1Xml = '';
             for (let mNum = 1; mNum <= numMeasures; mNum++) {
-                xml += `
+                p1Xml += `
     <measure number="${mNum}">`;
 
-                // Add attributes in measure 1
                 if (mNum === 1) {
-                    xml += `
+                    p1Xml += `
       <attributes>
         <divisions>${divisions}</divisions>
         <key>
@@ -1572,11 +1820,10 @@
       </direction>`;
                 }
 
-                const measureMarkers = markersByMeasure[mNum] || [];
+                const measureMarkers = punctualByMeasure[mNum] || [];
 
                 if (measureMarkers.length === 0) {
-                    // Whole measure rest
-                    xml += `
+                    p1Xml += `
       <note>
         <rest measure="yes"/>
         <duration>${divisionsPerMeasure}</duration>
@@ -1587,19 +1834,15 @@
                     measureMarkers.forEach(mm => {
                         const gap = mm.divisionIndex - currentDiv;
                         if (gap > 0) {
-                            xml += getRestsXml(gap);
+                            p1Xml += getRestsXml(gap);
                         }
                         
-                        // Write direction words for the marker
-                        xml += `
+                        p1Xml += `
       <direction placement="above">
         <direction-type>
           <words>${mm.label}</words>
         </direction-type>
-      </direction>`;
-                        
-                        // Write note representing the sync point (B4 16th note)
-                        xml += `
+      </direction>
       <note>
         <pitch>
           <step>B</step>
@@ -1614,25 +1857,130 @@
                         currentDiv = mm.divisionIndex + 1;
                     });
 
-                    // Pad the remainder of the measure with rests
                     if (currentDiv < divisionsPerMeasure) {
-                        xml += getRestsXml(divisionsPerMeasure - currentDiv);
+                        p1Xml += getRestsXml(divisionsPerMeasure - currentDiv);
                     }
                 }
 
-                // Add light-heavy barline to the last measure
                 if (mNum === numMeasures) {
-                    xml += `
+                    p1Xml += `
       <barline location="right">
         <bar-style>light-heavy</bar-style>
       </barline>`;
                 }
 
-                xml += `
+                p1Xml += `
     </measure>`;
             }
 
-            xml += `
+            // Generate Part 2 (Continuous)
+            const continuousMarkers = markers.filter(m => m.type === 'continuo');
+            let p2Xml = '';
+            for (let mNum = 1; mNum <= numMeasures; mNum++) {
+                p2Xml += `
+    <measure number="${mNum}">`;
+
+                if (mNum === 1) {
+                    p2Xml += `
+      <attributes>
+        <divisions>${divisions}</divisions>
+        <key>
+          <fifths>0</fifths>
+        </key>
+        <time>
+          <beats>${beats}</beats>
+          <beat-type>${beatType}</beat-type>
+        </time>
+        <clef>
+          <sign>G</sign>
+          <line>2</line>
+        </clef>
+      </attributes>`;
+                }
+
+                const StartLimit = (mNum - 1) * divisionsPerMeasure;
+                const EndLimit = mNum * divisionsPerMeasure;
+
+                // Build status array for each division in this measure
+                const status = new Array(divisionsPerMeasure).fill(null);
+                continuousMarkers.forEach(cm => {
+                    const gStart = Math.round(cm.time / secondsPerDivision);
+                    const gEnd = Math.round(cm.timeEnd / secondsPerDivision);
+                    for (let d = 0; d < divisionsPerMeasure; d++) {
+                        const gDiv = StartLimit + d;
+                        if (gDiv >= gStart && gDiv < gEnd) {
+                            status[d] = cm;
+                        }
+                    }
+                });
+
+                // Group status into segments
+                const segments = [];
+                let currentStatus = status[0];
+                let startDiv = 0;
+                for (let d = 1; d < divisionsPerMeasure; d++) {
+                    if (status[d] !== currentStatus) {
+                        segments.push({ start: startDiv, duration: d - startDiv, status: currentStatus });
+                        startDiv = d;
+                        currentStatus = status[d];
+                    }
+                }
+                segments.push({ start: startDiv, duration: divisionsPerMeasure - startDiv, status: currentStatus });
+
+                // Generate XML for each segment
+                segments.forEach(seg => {
+                    if (seg.status === null) {
+                        p2Xml += getRestsXml(seg.duration);
+                    } else {
+                        const marker = seg.status;
+                        const gStart = Math.round(marker.time / secondsPerDivision);
+                        const gEnd = Math.round(marker.timeEnd / secondsPerDivision);
+                        
+                        // If segment starts at the absolute beginning of the marker, write words direction
+                        if (StartLimit + seg.start === gStart) {
+                            p2Xml += `
+      <direction placement="above">
+        <direction-type>
+          <words>${marker.label}</words>
+        </direction-type>
+      </direction>`;
+                        }
+
+                        const isStartTied = gStart < StartLimit + seg.start;
+                        const isEndTied = gEnd > StartLimit + seg.start + seg.duration;
+                        p2Xml += getNotesXml(seg.duration, isStartTied, isEndTied);
+                    }
+                });
+
+                if (mNum === numMeasures) {
+                    p2Xml += `
+      <barline location="right">
+        <bar-style>light-heavy</bar-style>
+      </barline>`;
+                }
+
+                p2Xml += `
+    </measure>`;
+            }
+
+            // Assemble final XML doc
+            let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
+<score-partwise version="4.0">
+  <work>
+    <work-title>${projectNameInput.value || 'Projeto GL'}</work-title>
+  </work>
+  <part-list>
+    <score-part id="P1">
+      <part-name>Sync Track</part-name>
+    </score-part>
+    <score-part id="P2">
+      <part-name>Sync Track Continuo</part-name>
+    </score-part>
+  </part-list>
+  <part id="P1">${p1Xml}
+  </part>
+  <part id="P2">${p2Xml}
   </part>
 </score-partwise>`;
 
@@ -1689,72 +2037,139 @@
                 const divisionsEl = xmlDoc.querySelector('divisions');
                 if (divisionsEl) divisions = parseInt(divisionsEl.textContent) || 4;
 
-                // Parsing Marcas
+                // Parsing Marcas (Punctual and Continuous)
                 markers = [];
                 selectedMarkerId = null;
+                editingMarkerId = null;
                 let mId = Date.now();
-                
-                const measures = xmlDoc.querySelectorAll('part > measure');
-                measures.forEach(measure => {
-                    const measureNum = parseInt(measure.getAttribute('number')) || 1;
-                    let currentDiv = 0;
+
+                const parts = xmlDoc.querySelectorAll('part');
+                parts.forEach((part, partIndex) => {
+                    const partId = part.getAttribute('id');
+                    const isContinuousPart = partIndex === 1 || partId === 'P2';
+                    const measures = part.querySelectorAll('measure');
                     
-                    const children = measure.children;
-                    for (let i = 0; i < children.length; i++) {
-                        const child = children[i];
-                        const tagName = child.tagName.toLowerCase();
+                    let activeContinuous = null; // { label, startDiv, measureNum }
+
+                    measures.forEach(measure => {
+                        const measureNum = parseInt(measure.getAttribute('number')) || 1;
+                        let currentDiv = 0;
                         
-                        if (tagName === 'attributes') {
-                            const divEl = child.querySelector('divisions');
-                            if (divEl) divisions = parseInt(divEl.textContent) || divisions;
-                            const beatsElVal = child.querySelector('beats');
-                            if (beatsElVal) beatsPerMeasure = parseInt(beatsElVal.textContent) || beatsPerMeasure;
-                            const beatTypeElVal = child.querySelector('beat-type');
-                            if (beatTypeElVal) beatUnit = parseInt(beatTypeElVal.textContent) || beatUnit;
-                        } else if (tagName === 'note') {
-                            const isChord = child.querySelector('chord') !== null;
-                            const grace = child.querySelector('grace') !== null;
-                            if (!isChord && !grace) {
+                        const children = measure.children;
+                        for (let i = 0; i < children.length; i++) {
+                            const child = children[i];
+                            const tagName = child.tagName.toLowerCase();
+                            
+                            if (tagName === 'attributes') {
+                                const divEl = child.querySelector('divisions');
+                                if (divEl) divisions = parseInt(divEl.textContent) || divisions;
+                                const beatsElVal = child.querySelector('beats');
+                                if (beatsElVal) beatsPerMeasure = parseInt(beatsElVal.textContent) || beatsPerMeasure;
+                                const beatTypeElVal = child.querySelector('beat-type');
+                                if (beatTypeElVal) beatUnit = parseInt(beatTypeElVal.textContent) || beatUnit;
+                            } else if (tagName === 'note') {
+                                const isChord = child.querySelector('chord') !== null;
+                                const grace = child.querySelector('grace') !== null;
+                                const isRest = child.querySelector('rest') !== null;
+                                
+                                const durEl = child.querySelector('duration');
+                                const dur = durEl ? (parseInt(durEl.textContent) || 0) : 0;
+
+                                if (isContinuousPart) {
+                                    if (!isRest && !isChord && !grace && dur > 0) {
+                                        const tieStartEl = child.querySelector('tie[type="start"]');
+                                        const isTiedToNext = tieStartEl !== null;
+                                        
+                                        if (activeContinuous) {
+                                            if (!isTiedToNext) {
+                                                const endDiv = currentDiv + dur;
+                                                const secondsPerDivision = (60 / bpm) / divisions;
+                                                const divisionsPerMeasure = beatsPerMeasure * (4 / beatUnit) * divisions;
+                                                
+                                                const absStartDiv = (activeContinuous.measureNum - 1) * divisionsPerMeasure + activeContinuous.startDiv;
+                                                const absEndDiv = (measureNum - 1) * divisionsPerMeasure + endDiv;
+                                                
+                                                const startTime = absStartDiv * secondsPerDivision;
+                                                const endTime = absEndDiv * secondsPerDivision;
+                                                
+                                                markers.push({
+                                                    id: mId++,
+                                                    type: 'continuo',
+                                                    time: startTime,
+                                                    timeEnd: endTime,
+                                                    label: activeContinuous.label
+                                                });
+                                                activeContinuous = null;
+                                            }
+                                        }
+                                    } else if (isRest && !isChord && !grace && dur > 0) {
+                                        if (activeContinuous) {
+                                            const endDiv = currentDiv;
+                                            const secondsPerDivision = (60 / bpm) / divisions;
+                                            const divisionsPerMeasure = beatsPerMeasure * (4 / beatUnit) * divisions;
+                                            
+                                            const absStartDiv = (activeContinuous.measureNum - 1) * divisionsPerMeasure + activeContinuous.startDiv;
+                                            const absEndDiv = (measureNum - 1) * divisionsPerMeasure + endDiv;
+                                            
+                                            const startTime = absStartDiv * secondsPerDivision;
+                                            const endTime = absEndDiv * secondsPerDivision;
+                                            
+                                            markers.push({
+                                                id: mId++,
+                                                type: 'continuo',
+                                                time: startTime,
+                                                timeEnd: endTime,
+                                                label: activeContinuous.label
+                                            });
+                                            activeContinuous = null;
+                                        }
+                                    }
+                                }
+
+                                if (!isChord && !grace) {
+                                    currentDiv += dur;
+                                }
+                            } else if (tagName === 'backup') {
+                                const durEl = child.querySelector('duration');
+                                const dur = durEl ? (parseInt(durEl.textContent) || 0) : 0;
+                                currentDiv -= dur;
+                            } else if (tagName === 'forward') {
                                 const durEl = child.querySelector('duration');
                                 const dur = durEl ? (parseInt(durEl.textContent) || 0) : 0;
                                 currentDiv += dur;
-                            }
-                        } else if (tagName === 'backup') {
-                            const durEl = child.querySelector('duration');
-                            const dur = durEl ? (parseInt(durEl.textContent) || 0) : 0;
-                            currentDiv -= dur;
-                        } else if (tagName === 'forward') {
-                            const durEl = child.querySelector('duration');
-                            const dur = durEl ? (parseInt(durEl.textContent) || 0) : 0;
-                            currentDiv += dur;
-                        } else if (tagName === 'direction') {
-                            const wordsEl = child.querySelector('words');
-                            if (wordsEl) {
-                                let label = wordsEl.textContent.trim();
-                                if (label) {
-                                    const secondsPerDivision = (60 / bpm) / divisions;
-                                    const divisionsPerMeasure = beatsPerMeasure * (4 / beatUnit) * divisions;
-                                    const absDiv = (measureNum - 1) * divisionsPerMeasure + currentDiv;
-                                    const time = absDiv * secondsPerDivision;
-                                    markers.push({ id: mId++, time: time, label: label });
+                            } else if (tagName === 'direction') {
+                                const wordsEl = child.querySelector('words');
+                                if (wordsEl) {
+                                    let label = wordsEl.textContent.trim();
+                                    if (label) {
+                                        if (!isContinuousPart) {
+                                            const secondsPerDivision = (60 / bpm) / divisions;
+                                            const divisionsPerMeasure = beatsPerMeasure * (4 / beatUnit) * divisions;
+                                            const absDiv = (measureNum - 1) * divisionsPerMeasure + currentDiv;
+                                            const time = absDiv * secondsPerDivision;
+                                            markers.push({ id: mId++, type: 'pontual', time: time, label: label });
+                                        } else {
+                                            activeContinuous = {
+                                                label: label,
+                                                startDiv: currentDiv,
+                                                measureNum: measureNum
+                                            };
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
+                    });
                 });
 
                 // Sort markers by time
                 markers.sort((a, b) => a.time - b.time);
                 renderMarkers();
 
-
-
-                e.target.value = ''; // Reseta input
+                e.target.value = ''; // Reset input
             };
             reader.readAsText(file);
         });
-
-
 
         // ── Audio Trigger ──
         thresholdSlider.addEventListener('input', e => { micMarker.style.left = `${e.target.value}%`; });
@@ -1864,6 +2279,9 @@
             } else if (key.toLowerCase() === 'm') {
                 e.preventDefault();
                 btnAddMarker.click();
+            } else if (key.toLowerCase() === 'c') {
+                e.preventDefault();
+                toggleContinuousMarker();
             } else if (key === 'ArrowLeft') {
                 e.preventDefault();
                 if (shift) {
@@ -1893,7 +2311,206 @@
                 gotoNextMarker();
             }
         });
+
+        // ── Open Help Window ──
+        function openHelpWindow() {
+            const width = 800;
+            const height = 900;
+            const left = (window.screen.width - width) / 2;
+            const top = (window.screen.height - height) / 2;
+            
+            const helpWin = window.open("", "GLSyncInTapHelp", `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`);
+            
+            helpWin.document.write(`
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de Uso & Atalhos - GL Sync-in-Tap</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: #121216;
+            color: #e2e2e2;
+            padding: 1.5rem;
+            margin: 0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        h2 {
+            color: #ffffff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h2:first-of-type {
+            margin-top: 0;
+        }
+        h3 {
+            color: #BCDFB9;
+            font-size: 1rem;
+            margin-top: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        p, li {
+            font-size: 0.88rem;
+            color: #a0a0a5;
+        }
+        ol, ul {
+            padding-left: 1.2rem;
+            margin: 0.5rem 0;
+        }
+        li {
+            margin-bottom: 0.6rem;
+        }
+        strong {
+            color: #ffffff;
+        }
+        .shortcuts-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.8rem;
+            font-size: 0.85rem;
+        }
+        .shortcuts-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .shortcuts-table tr:last-child td {
+            border-bottom: none;
+        }
+        .shortcuts-table td:first-child {
+            font-weight: 600;
+            color: #e2e2e2;
+            width: 50%;
+        }
+        .shortcuts-table td:last-child {
+            text-align: right;
+        }
+        kbd {
+            background-color: #2a2a30;
+            border: 1px solid #555;
+            border-radius: 3px;
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 0 0 2px #18181b inset;
+            color: #eee;
+            display: inline-block;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            font-weight: bold;
+            line-height: 1.4;
+            padding: 2px 6px;
+            white-space: nowrap;
+        }
+        .btn-close {
+            display: block;
+            width: 100%;
+            background: #2d8a4e;
+            color: white;
+            border: none;
+            padding: 0.6rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: background 0.15s;
+        }
+        .btn-close:hover {
+            background: #369c5c;
+        }
+        .footer-credits {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px dashed rgba(255, 255, 255, 0.1);
+            font-size: 0.75rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📖 Guia de Uso — GL Sync-in-Tap</h2>
+        
+        <ol>
+            <li><strong>Carregar Vídeo</strong>: Selecione um arquivo de vídeo na seção "Arquivo" para começar.</li>
+            <li><strong>Marcar Sincronismo</strong>:
+                <ul>
+                    <li>Use o botão <strong>+ Pontual</strong> (Atalho <kbd>M</kbd>) para registrar batidas/instantes únicos.</li>
+                    <li>Use o botão <strong>+ Contínua</strong> (Atalho <kbd>C</kbd>) para registrar trechos de longa duração (clique uma vez para iniciar o trecho e clique novamente para parar).</li>
+                </ul>
+            </li>
+            <li><strong>Som das Marcas</strong>: Ative os efeitos sonoros para ouvir um clique nas marcas pontuais e um som longo (com fade-in de 1s e 2s totais) no início de marcas contínuas.</li>
+            <li><strong>Edição Fina</strong>: Dê um clique simples em qualquer marca na lista para selecioná-la e navegar até seu tempo no vídeo. Use cliques duplos nas marcas para edição manual do compasso e do nome. Use o ajuste por frame no teclado para deslocar os pontos selecionados com alta precisão.</li>
+            <li><strong>Importar e Exportar</strong>: Salve o progresso exportando em formato MusicXML com divisão em duas pautas (P1 para Pontuais, P2 para Contínuas), compatível com softwares de partitura.</li>
+        </ol>
+
+        <h2>⌨️ Atalhos de Teclado</h2>
+        <table class="shortcuts-table">
+            <tr>
+                <td>Play / Pause do Vídeo</td>
+                <td><kbd>Espaço (Space)</kbd></td>
+            </tr>
+            <tr>
+                <td>Criar Marca Pontual</td>
+                <td><kbd>M</kbd></td>
+            </tr>
+            <tr>
+                <td>Iniciar/Parar Marca Contínua</td>
+                <td><kbd>C</kbd></td>
+            </tr>
+            <tr>
+                <td>Voltar 1 Frame</td>
+                <td><kbd>◀ Seta Esquerda</kbd></td>
+            </tr>
+            <tr>
+                <td>Avançar 1 Frame</td>
+                <td><kbd>Seta Direita ▶</kbd></td>
+            </tr>
+            <tr>
+                <td>Voltar 5 Frames</td>
+                <td><kbd>Shift</kbd> + <kbd>◀ Seta Esquerda</kbd></td>
+            </tr>
+            <tr>
+                <td>Avançar 5 Frames</td>
+                <td><kbd>Shift</kbd> + <kbd>Seta Direita ▶</kbd></td>
+            </tr>
+            <tr>
+                <td>Ativar/Pausar Sincronismo (Mic)</td>
+                <td><kbd>S</kbd></td>
+            </tr>
+            <tr>
+                <td>Ir para Marca Anterior</td>
+                <td><kbd>[</kbd></td>
+            </tr>
+            <tr>
+                <td>Ir para Próxima Marca</td>
+                <td><kbd>]</kbd></td>
+            </tr>
+        </table>
+
+        <button class="btn-close" onclick="window.close()">Fechar Guia</button>
+
+        <div class="footer-credits">
+            Desenvolvido pelo professor Glauber Santiago — DAC/UFSCar
+        </div>
+    </div>
+</body>
+</html>
+            `);
+            helpWin.document.close();
+        }
     </script>
 </body>
-
 </html>
