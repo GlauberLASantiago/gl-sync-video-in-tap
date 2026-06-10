@@ -9,18 +9,23 @@
         :root {
             --primary: #BCDFB9;
             --accent: #C87F8B;
-            --bg-overlay: rgba(25, 25, 30, 0.9);
-            --card-bg: rgba(45, 45, 50, 0.95);
-            --text: #e0e0e0;
-            --text-muted: #a0a0a0;
-            --border: #444;
+            --bg-overlay: rgba(18, 18, 22, 0.93);
+            --panel-bg: rgba(30, 30, 36, 0.97);
+            --card-bg: rgba(40, 40, 48, 0.98);
+            --text: #e2e2e2;
+            --text-muted: #888;
+            --border: rgba(255,255,255,0.08);
+            --border-active: rgba(255,255,255,0.18);
+            --section-header-bg: rgba(255,255,255,0.04);
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             color: var(--text);
             margin: 0;
-            padding: 0.5rem; /* Reduzido para economizar espaço */
+            padding: 0.6rem;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -32,524 +37,877 @@
             background-color: #111;
         }
 
-        /* Container Principal Mini */
         .app-wrapper {
             background-color: var(--bg-overlay);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            padding: 1rem;
-            border-radius: 8px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 10px;
             width: 100%;
             max-width: 1200px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            box-sizing: border-box;
-            transition: max-width 0.3s ease;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+            overflow: hidden;
+            border: 1px solid var(--border-active);
         }
 
-        header {
+        /* ── Header ── */
+        .app-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 0.6rem 1rem;
+            background: rgba(0,0,0,0.3);
             border-bottom: 1px solid var(--border);
-            padding-bottom: 0.5rem;
-            margin-bottom: 0.8rem;
         }
 
-        h1 { font-weight: 800; margin: 0; font-size: 1.3rem; color: #fff; }
-        .brand { color: var(--accent); }
-        header p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
+        .brand-block { display: flex; align-items: center; gap: 0.6rem; }
+        .brand-logo {
+            width: 32px; height: 32px; border-radius: 6px;
+            background: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 0.85rem; color: #1a1a1a;
+            letter-spacing: -1px;
+        }
+        .brand-title { font-weight: 800; font-size: 1.1rem; color: #fff; margin: 0; line-height: 1; }
+        .brand-sub { font-size: 0.68rem; color: var(--text-muted); margin: 0; }
 
-        /* Barra de Seleção de Layout */
+        .header-actions { display: flex; gap: 6px; align-items: center; }
+
         .layout-selector {
             display: flex;
-            gap: 5px;
+            gap: 3px;
             background: rgba(0,0,0,0.4);
             padding: 3px;
-            border-radius: 4px;
+            border-radius: 5px;
             border: 1px solid var(--border);
         }
         .layout-btn {
-            background: transparent;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-weight: 600;
-            width: auto;
+            background: transparent; color: var(--text-muted);
+            font-size: 0.7rem; padding: 3px 9px;
+            border-radius: 3px; font-weight: 700; border: none;
+            cursor: pointer; transition: all 0.15s;
         }
-        .layout-btn.active {
-            background: var(--primary);
-            color: #111;
-        }
+        .layout-btn.active { background: var(--primary); color: #111; }
+        .layout-btn:hover:not(.active) { color: var(--text); }
 
-        /* Grid Base */
-        .container {
+        /* ── Layout Grid ── */
+        .main-layout {
             display: grid;
-            gap: 1rem;
-            transition: all 0.3s ease;
+            grid-template-columns: 1fr 340px;
+            gap: 0;
         }
 
-        /* Player Area Mini */
+        /* ── Video Side ── */
+        .video-side {
+            padding: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            border-right: 1px solid var(--border);
+        }
+
         .video-wrapper {
             position: relative;
             background: #000;
-            border-radius: 6px;
+            border-radius: 7px;
             overflow: hidden;
             aspect-ratio: 16/9;
             border: 1px solid var(--border);
-            height: fit-content;
         }
         video { width: 100%; height: 100%; display: block; }
 
-        .overlay {
+        .timecode-overlay {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.85);
+            top: 10px; left: 10px;
+            background: rgba(0,0,0,0.88);
             color: var(--primary);
             padding: 4px 12px;
             border-radius: 4px;
-            font-family: monospace;
-            font-size: 1.2rem;
+            font-family: 'Courier New', monospace;
+            font-size: 1.15rem;
             font-weight: bold;
             pointer-events: none;
             border-left: 3px solid var(--accent);
+            letter-spacing: 1px;
         }
 
-        /* Painel de Controles Otimizado */
-        .controls {
-            background: var(--card-bg);
-            padding: 0.8rem;
-            border-radius: 6px;
+        /* Status bar below video */
+        .video-status {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .status-pill {
+            background: rgba(0,0,0,0.4);
             border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: flex; gap: 5px; align-items: center;
+        }
+        .status-pill.active { border-color: var(--primary); color: var(--primary); }
+        .status-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); }
+        .status-pill.active .dot { background: var(--primary); animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        /* ── Controls Side ── */
+        .controls-side {
             display: flex;
             flex-direction: column;
-            gap: 0.8rem;
-            font-size: 0.85rem;
+            overflow: hidden;
         }
 
-        .control-group { display: flex; flex-direction: column; gap: 0.3rem; }
-        .grid-2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        /* ── Accordion Section ── */
+        .section {
+            border-bottom: 1px solid var(--border);
+            overflow: hidden;
+        }
 
-        label {
-            font-weight: 700; font-size: 0.7rem; text-transform: uppercase;
-            letter-spacing: 0.05em; color: var(--text-muted);
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.55rem 0.9rem;
+            cursor: pointer;
+            user-select: none;
+            background: var(--section-header-bg);
+            transition: background 0.15s;
+        }
+        .section-header:hover { background: rgba(255,255,255,0.07); }
+
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
+        .section-label .icon {
+            width: 22px; height: 22px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem;
+        }
+        .section-open .section-label { color: var(--text); }
+        .section-open .section-label .icon { background: var(--primary); }
+
+        .section-chevron {
+            font-size: 0.7rem; color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+        .section-open .section-chevron { transform: rotate(180deg); color: var(--primary); }
+
+        /* Badge indicator on closed sections */
+        .section-badge {
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.6rem;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 10px;
+            margin-left: auto;
+            margin-right: 6px;
+        }
+
+        .section-body {
+            display: none;
+            padding: 0.75rem 0.9rem;
+            gap: 0.65rem;
+            flex-direction: column;
+            background: rgba(0,0,0,0.15);
+        }
+        .section-open .section-body { display: flex; }
+
+        /* ── Form Controls ── */
+        label.field-label {
+            font-weight: 700; font-size: 0.67rem; text-transform: uppercase;
+            letter-spacing: 0.06em; color: var(--text-muted); display: block;
+            margin-bottom: 3px;
         }
 
         input[type="number"], input[type="file"], input[type="range"], select, input[type="text"] {
-            background-color: rgba(20, 20, 20, 0.8); color: #fff;
-            padding: 0.4rem; border: 1px solid var(--border); border-radius: 4px;
-            font-family: inherit; font-size: 0.85rem; box-sizing: border-box; width: 100%;
+            background-color: rgba(15, 15, 18, 0.9);
+            color: #fff;
+            padding: 0.38rem 0.5rem;
+            border: 1px solid var(--border-active);
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 0.82rem;
+            width: 100%;
         }
+        input:focus, select:focus { outline: none; border-color: var(--primary); }
 
         input[type="file"]::file-selector-button {
-            background-color: #444; color: #fff; border: none;
-            padding: 0.2rem 0.5rem; border-radius: 3px; cursor: pointer; font-size: 0.75rem;
+            background-color: #3a3a44; color: #fff; border: none;
+            padding: 0.2rem 0.5rem; border-radius: 3px; cursor: pointer;
+            font-size: 0.72rem; margin-right: 6px;
+        }
+        input[type="file"]::file-selector-button:hover { background-color: #4a4a54; }
+
+        .video-name-tag {
+            display: none;
+            background: rgba(188, 223, 185, 0.1);
+            border: 1px solid rgba(188, 223, 185, 0.25);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            color: var(--primary);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
-        button {
-            background-color: var(--primary); color: #111; font-weight: 700;
-            border: none; padding: 0.5rem; border-radius: 4px; cursor: pointer;
-            transition: all 0.2s; font-size: 0.85rem; width: 100%; box-sizing: border-box;
+        /* Buttons */
+        .btn {
+            background: var(--primary); color: #111; font-weight: 700;
+            border: none; padding: 0.42rem 0.7rem; border-radius: 5px;
+            cursor: pointer; transition: all 0.15s; font-size: 0.82rem;
+            width: 100%;
         }
-        button:hover { filter: brightness(1.1); }
-        button.action-btn { background-color: var(--accent); color: #fff; }
-        button.outline-btn { background-color: transparent; border: 1px solid var(--primary); color: var(--primary); }
-        button.pause-sync-btn { background-color: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 0.4rem; }
-        button.pause-sync-btn.paused { background-color: var(--accent); color: #fff; }
-        
-        /* Steppers Compactos */
-        .stepper, .time-signature { display: flex; width: 100%; }
-        .stepper button { width: 30px; padding: 0; border-radius: 0; background: #444; color: #fff; }
-        .stepper button:first-child { border-radius: 4px 0 0 4px; }
-        .stepper button:last-child { border-radius: 0 4px 4px 0; }
-        .stepper input { border-radius: 0; border-left: none; border-right: none; text-align: center; }
-        
-        .time-signature input { border-radius: 4px 0 0 4px; text-align: center; }
-        .time-signature span { background: #333; padding: 0 5px; display: flex; align-items: center; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-        .time-signature select { border-radius: 0 4px 4px 0; text-align: center; }
+        .btn:hover { filter: brightness(1.1); }
+        .btn-accent { background: var(--accent); color: #fff; }
+        .btn-outline { background: transparent; border: 1px solid var(--border-active); color: var(--text); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-sm { padding: 0.25rem 0.55rem; font-size: 0.72rem; width: auto; }
+        .btn-danger { background: transparent; border: 1px solid #c87; color: #c87; }
+        .btn-danger:hover { background: rgba(200, 120, 100, 0.15); }
 
-        /* Monitor de Áudio */
-        .mic-monitor { width: 100%; height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden; position: relative; border: 1px solid var(--border); }
-        .mic-level { height: 100%; width: 0%; background: var(--primary); }
+        .btn-row { display: flex; gap: 6px; }
+        .btn-row .btn { flex: 1; }
+
+        /* Stepper */
+        .stepper { display: flex; width: 100%; }
+        .stepper .btn { width: 32px; flex: none; padding: 0; border-radius: 0; background: #3a3a44; color: #fff; }
+        .stepper .btn:first-child { border-radius: 5px 0 0 5px; }
+        .stepper .btn:last-child { border-radius: 0 5px 5px 0; }
+        .stepper input { border-radius: 0; border-left: none; border-right: none; text-align: center; flex: 1; }
+
+        /* Time signature */
+        .time-sig { display: flex; width: 100%; }
+        .time-sig input { border-radius: 5px 0 0 5px; text-align: center; flex: 1; }
+        .time-sig span {
+            background: rgba(255,255,255,0.05); padding: 0 6px;
+            display: flex; align-items: center;
+            border-top: 1px solid var(--border-active);
+            border-bottom: 1px solid var(--border-active);
+            color: var(--text-muted); font-size: 0.9rem;
+        }
+        .time-sig select { border-radius: 0 5px 5px 0; flex: 1; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+
+        /* Mic monitor */
+        .mic-row { display: flex; align-items: center; gap: 8px; }
+        .mic-monitor {
+            flex: 1; height: 10px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 5px; overflow: hidden;
+            position: relative; border: 1px solid var(--border-active);
+        }
+        .mic-level { height: 100%; width: 0%; background: var(--primary); border-radius: 5px; transition: width 0.05s; }
         .mic-threshold-marker { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent); z-index: 2; }
 
-        hr { width: 100%; border: 0; border-top: 1px solid var(--border); margin: 0; }
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 4px; padding: 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px; border: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 13px; height: 13px;
+            border-radius: 50%;
+            background: var(--primary); cursor: pointer;
+        }
 
-        /* Lista de Marcas Reduzida */
-        .marker-list { display: flex; flex-direction: column; gap: 4px; max-height: 150px; overflow-y: auto; }
-        .marker-item { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 4px; padding: 4px; display: grid; grid-template-columns: 65px 1fr auto auto; gap: 5px; align-items: center; }
-        .marker-times { display: flex; flex-direction: column; }
-        .marker-abs { color: var(--text-muted); font-family: monospace; font-size: 0.65rem; text-align: center; }
-        .marker-input { background: transparent !important; border: none !important; border-bottom: 1px dashed var(--border) !important; padding: 2px !important; color: #fff !important; font-size: 0.8rem !important; }
-        .marker-time-input { color: var(--primary) !important; font-weight: bold; font-family: monospace; text-align: center; font-size: 0.8rem !important; }
-        .marker-btn-go { background: var(--primary); color: #111; padding: 3px 6px; font-size: 0.75rem; width: auto; }
-        .marker-btn-del { background: transparent; color: var(--accent); padding: 3px 5px; font-size: 0.75rem; border: 1px solid var(--accent); width: auto; }
+        /* Sync toggle */
+        .sync-toggle {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0,0,0,0.3); border-radius: 5px; padding: 6px 10px;
+            border: 1px solid var(--border-active); cursor: pointer;
+        }
+        .sync-toggle-label { font-size: 0.78rem; color: var(--text-muted); }
+        .toggle-switch {
+            width: 34px; height: 18px; border-radius: 9px;
+            background: #333; position: relative; transition: background 0.2s;
+        }
+        .toggle-switch.on { background: var(--primary); }
+        .toggle-knob {
+            position: absolute; top: 2px; left: 2px;
+            width: 14px; height: 14px; border-radius: 50%;
+            background: #888; transition: all 0.2s;
+        }
+        .toggle-switch.on .toggle-knob { left: 18px; background: #111; }
 
-        /* Projetos Histórico Compacto */
-        .projects-section { background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem; }
-        .projects-grid { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
-        .project-card { min-width: 120px; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; cursor: pointer; font-size: 0.75rem; }
-        .project-thumb { width: 100%; height: 60px; background-size: cover; background-position: center; position: relative; }
-        .project-dur { position: absolute; bottom: 2px; right: 2px; background: rgba(0,0,0,0.8); padding: 1px 4px; font-size: 0.65rem; font-family: monospace; border-radius: 2px; }
-        .project-info { padding: 4px; }
-        .project-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
+        /* ── Markers ── */
+        .marker-list {
+            display: flex; flex-direction: column; gap: 4px;
+            max-height: 180px; overflow-y: auto;
+        }
+        .marker-list::-webkit-scrollbar { width: 4px; }
+        .marker-list::-webkit-scrollbar-track { background: transparent; }
+        .marker-list::-webkit-scrollbar-thumb { background: var(--border-active); border-radius: 2px; }
 
-        /* ==========================================================================
-           DEFINIÇÕES DE LAYOUT DInÂMICO
-           ========================================================================== */
-        
-        /* 1. MODO GERAL (Padrão) */
-        .layout-geral .container { grid-template-columns: 1fr 380px; }
+        .marker-item {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid var(--border-active);
+            border-radius: 5px;
+            padding: 5px 7px;
+            display: grid;
+            grid-template-columns: 70px 1fr auto auto;
+            gap: 5px;
+            align-items: center;
+        }
+        .marker-item:hover { border-color: rgba(188, 223, 185, 0.2); }
+        .marker-times { display: flex; flex-direction: column; gap: 1px; }
+        .marker-abs { color: var(--text-muted); font-family: monospace; font-size: 0.62rem; text-align: center; }
+        .marker-input {
+            background: transparent !important; border: none !important;
+            border-bottom: 1px dashed rgba(255,255,255,0.1) !important;
+            padding: 2px 4px !important; color: #fff !important;
+            font-size: 0.78rem !important; border-radius: 0 !important;
+        }
+        .marker-time-input { color: var(--primary) !important; font-weight: bold; font-family: monospace; text-align: center; }
+        .marker-input:focus { border-bottom-color: var(--primary) !important; outline: none; }
 
-        /* 2. MODO VERTICAL (Coluna Estreita Lateral) */
-        .layout-vertical { max-width: 380px; }
-        .layout-vertical .container { grid-template-columns: 1fr; }
-        .layout-vertical header p { display: none; }
+        .empty-state {
+            color: var(--text-muted); font-size: 0.75rem;
+            text-align: center; padding: 12px 0; font-style: italic;
+        }
 
-        /* 3. MODO HORIZONTAL (Barra Baixa) */
+        /* ── Projects ── */
+        .projects-grid {
+            display: flex; gap: 8px;
+            overflow-x: auto; padding-bottom: 4px;
+        }
+        .projects-grid::-webkit-scrollbar { height: 3px; }
+        .projects-grid::-webkit-scrollbar-thumb { background: var(--border-active); }
+
+        .project-card {
+            min-width: 110px; max-width: 110px;
+            background: rgba(0,0,0,0.4); border: 1px solid var(--border-active);
+            border-radius: 5px; overflow: hidden; cursor: pointer;
+            font-size: 0.72rem; transition: border-color 0.15s;
+        }
+        .project-card:hover { border-color: rgba(188, 223, 185, 0.35); }
+        .project-thumb { width: 100%; height: 56px; background-size: cover; background-position: center; position: relative; }
+        .project-dur {
+            position: absolute; bottom: 3px; right: 3px;
+            background: rgba(0,0,0,0.85); padding: 1px 5px;
+            font-size: 0.62rem; font-family: monospace; border-radius: 2px; color: #fff;
+        }
+        .project-info { padding: 5px 6px; }
+        .project-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--text); }
+        .project-bpm { color: var(--text-muted); font-size: 0.65rem; margin-top: 1px; }
+
+        /* ── Bottom bar (frame controls) ── */
+        .frame-controls {
+            display: flex; gap: 6px;
+        }
+        .frame-controls .btn { flex: 1; }
+
+        /* ── Responsive / Layout Modes ── */
+        .layout-vertical { max-width: 360px; }
+        .layout-vertical .main-layout { grid-template-columns: 1fr; }
+        .layout-vertical .video-side { border-right: none; border-bottom: 1px solid var(--border); }
+        .layout-vertical .brand-sub { display: none; }
+
         .layout-horizontal { max-width: 100%; }
-        .layout-horizontal .container { grid-template-columns: 320px 1fr 1fr; }
-        .layout-horizontal .controls { display: grid; grid-template-columns: 1fr; gap: 0.5rem; }
-        .layout-horizontal .projects-section { display: none; } /* Oculta projetos no modo barra para focar na ação */
+        .layout-horizontal .main-layout { grid-template-columns: minmax(200px, 320px) 1fr; }
 
         @media (max-width: 800px) {
-            .layout-geral .container, .layout-horizontal .container { grid-template-columns: 1fr; }
+            .main-layout { grid-template-columns: 1fr !important; }
+            .video-side { border-right: none; border-bottom: 1px solid var(--border); }
         }
+
+        /* Scrollable controls side */
+        .controls-side {
+            overflow-y: auto;
+            max-height: calc(100vh - 100px);
+        }
+        .controls-side::-webkit-scrollbar { width: 4px; }
+        .controls-side::-webkit-scrollbar-thumb { background: var(--border-active); }
     </style>
 </head>
 <body>
 
-    <div class="app-wrapper layout-geral" id="appWrapper">
-        <header>
+<div class="app-wrapper layout-geral" id="appWrapper">
+
+    <header class="app-header">
+        <div class="brand-block">
+            <div class="brand-logo">GL</div>
             <div>
-                <h1><span class="brand">GL</span> Sync-in-Tap</h1>
-                <p>Sincronismo Otimizado de Partitura</p>
+                <p class="brand-title"><span style="color:var(--accent)">GL</span> Sync-in-Tap</p>
+                <p class="brand-sub">Sincronismo Otimizado de Partitura</p>
             </div>
+        </div>
+        <div class="header-actions">
             <div class="layout-selector">
                 <button class="layout-btn active" id="btn-geral" onclick="changeLayout('geral')">Geral</button>
                 <button class="layout-btn" id="btn-vertical" onclick="changeLayout('vertical')">Vertical</button>
                 <button class="layout-btn" id="btn-horizontal" onclick="changeLayout('horizontal')">Horizontal</button>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <div class="container">
-            <div id="videoBlock" style="display: flex; flex-direction: column; gap: 0.8rem;">
-                <div class="video-wrapper">
-                    <video id="videoPlayer" controls></video>
-                    <div class="overlay" id="overlay">
-                        <span id="displayTimecode">1|1|1</span>
-                    </div>
-                </div>
-                
-                <div class="projects-section">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                        <label style="margin: 0;">Histórico de Projetos</label>
-                        <button id="btnSaveProject" class="action-btn" style="width: auto; padding: 2px 10px; font-size: 0.75rem;">Salvar Atual</button>
-                    </div>
-                    <div class="projects-grid" id="projectsContainer">
-                        <p style="color: var(--text-muted); font-size: 0.75rem; margin: 5px 0; font-style: italic;">Nenhum projeto salvo.</p>
-                    </div>
+    <div class="main-layout">
+
+        <!-- ── Lado Esquerdo: Vídeo ── -->
+        <div class="video-side">
+            <div class="video-wrapper">
+                <video id="videoPlayer" controls></video>
+                <div class="timecode-overlay">
+                    <span id="displayTimecode">1|1|1</span>
                 </div>
             </div>
 
-            <div class="controls">
-                <div class="control-group">
-                    <label for="videoUpload">1. Vídeo</label>
-                    <input type="file" id="videoUpload" accept="video/*">
-                    <small id="videoNameLabel" style="color:var(--accent); font-size:0.7rem; display:none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Arq: <span></span></small>
+            <div class="video-status">
+                <div class="status-pill" id="statusPill">
+                    <span class="dot"></span>
+                    <span id="statusText">Sem vídeo</span>
                 </div>
-
-                <hr>
-
-                <div class="control-group">
-                    <label>2. Gatilho (Play)</label>
-                    <div style="display: flex; gap: 5px;">
-                        <button id="btnStartMic" style="padding: 0.3rem;">Ligar Escuta</button>
-                        <button id="btnToggleSync" class="pause-sync-btn" style="display: none; flex: 1;">Pausar Sinc.</button>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 5px; margin-top: 4px;">
-                        <input type="range" id="thresholdSlider" min="1" max="100" value="40" style="flex: 1; padding: 0;">
-                        <div class="mic-monitor" style="flex: 1.5;">
-                            <div class="mic-level" id="micLevel"></div>
-                            <div class="mic-threshold-marker" id="micMarker" style="left: 40%;"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <hr>
-
-                <div class="grid-2-col">
-                    <div class="control-group">
-                        <label>Andamento</label>
-                        <div class="stepper">
-                            <button type="button" id="btnBpmMinus">-</button>
-                            <input type="number" id="bpmInput" value="120" min="40" max="300">
-                            <button type="button" id="btnBpmPlus">+</button>
-                        </div>
-                    </div>
-                    <div class="control-group">
-                        <label>Compasso</label>
-                        <div class="time-signature">
-                            <input type="number" id="beatsPerMeasure" value="4" min="1" max="12">
-                            <span>/</span>
-                            <select id="beatUnit">
-                                <option value="2">2</option>
-                                <option value="4" selected>4</option>
-                                <option value="8">8</option>
-                                <option value="16">16</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <hr>
-                
-                <div class="control-group">
-                    <label>Ajuste Fino (Frames)</label>
-                    <div style="display: flex; gap: 5px;">
-                        <button id="btnFrameBack" class="outline-btn" style="padding: 0.3rem;">&lt; Frame</button>
-                        <button id="btnFrameFwd" class="outline-btn" style="padding: 0.3rem;">Frame &gt;</button>
-                    </div>
-                </div>
-
-                <hr>
-
-                <div class="control-group">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                        <label>Marcas (M|B|S)</label>
-                        <button id="btnAddMarker" class="action-btn" style="width: auto; padding: 2px 8px; font-size: 0.75rem;">+ Criar</button>
-                    </div>
-                    <div class="marker-list" id="markerList"></div>
+                <div class="status-pill" id="micStatusPill" style="display:none;">
+                    <span class="dot"></span>
+                    <span id="micStatusText">Mic inativo</span>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script>
-        const wrapper = document.getElementById('appWrapper');
-        const video = document.getElementById('videoPlayer');
-        const videoUpload = document.getElementById('videoUpload');
-        const videoNameLabel = document.getElementById('videoNameLabel');
-        
-        const bpmInput = document.getElementById('bpmInput');
-        const btnBpmMinus = document.getElementById('btnBpmMinus');
-        const btnBpmPlus = document.getElementById('btnBpmPlus');
-        const beatsInput = document.getElementById('beatsPerMeasure');
-        const beatUnitInput = document.getElementById('beatUnit');
-        const displayTimecode = document.getElementById('displayTimecode');
-        
-        const btnStartMic = document.getElementById('btnStartMic');
-        const btnToggleSync = document.getElementById('btnToggleSync');
-        const thresholdSlider = document.getElementById('thresholdSlider');
-        const micLevelBar = document.getElementById('micLevel');
-        const micMarker = document.getElementById('micMarker');
-        
-        const btnFrameBack = document.getElementById('btnFrameBack');
-        const btnFrameFwd = document.getElementById('btnFrameFwd');
-        
-        const btnAddMarker = document.getElementById('btnAddMarker');
-        const markerListEl = document.getElementById('markerList');
-        const btnSaveProject = document.getElementById('btnSaveProject');
-        const projectsContainer = document.getElementById('projectsContainer');
+        <!-- ── Lado Direito: Controles em Accordion ── -->
+        <div class="controls-side">
 
-        let currentVideoName = "";
-        let markers = [];
-        let audioContext, analyser, dataArray;
-        let isListening = false;
-        let isSyncPaused = false;
-        let lastTriggerTime = 0;
-        const FPS = 30;
-
-        // --- Gerenciador de Layouts ---
-        function changeLayout(mode) {
-            wrapper.classList.remove('layout-geral', 'layout-vertical', 'layout-horizontal');
-            wrapper.classList.add('layout-' + mode);
-            
-            document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + mode).classList.add('active');
-        }
-
-        // --- Core Time Math ---
-        function calculateMusicalTime(timeSeconds) {
-            const bpm = parseFloat(bpmInput.value) || 120;
-            const beatsPerMeasure = parseInt(beatsInput.value) || 4;
-            const beatUnit = parseInt(beatUnitInput.value) || 4;
-            const unitFactor = 4 / beatUnit; 
-            const secondsPerBeat = (60 / bpm) * unitFactor;
-            
-            const currentBeatTotal = timeSeconds / secondsPerBeat;
-            const measure = Math.floor(currentBeatTotal / beatsPerMeasure) + 1;
-            const beatInMeasure = Math.floor(currentBeatTotal % beatsPerMeasure) + 1;
-            const fractionOfBeat = currentBeatTotal % 1;
-            const sixteenthNote = Math.floor(fractionOfBeat * 4) + 1;
-            
-            return `${measure}|${beatInMeasure}|${sixteenthNote}`;
-        }
-
-        function parseMusicalTimeToSeconds(timecodeStr) {
-            const parts = timecodeStr.split('|').map(Number);
-            if (parts.length !== 3 || parts.some(isNaN)) return null;
-            const [m, b, s] = parts;
-            const bpm = parseFloat(bpmInput.value) || 120;
-            const beatsPerMeasure = parseInt(beatsInput.value) || 4;
-            const beatUnit = parseInt(beatUnitInput.value) || 4;
-            const unitFactor = 4 / beatUnit; 
-            const secondsPerBeat = (60 / bpm) * unitFactor;
-            
-            const totalBeats = ((m - 1) * beatsPerMeasure) + (b - 1) + ((s - 1) / 4);
-            return totalBeats * secondsPerBeat;
-        }
-
-        function formatAbsTime(seconds) {
-            const date = new Date(seconds * 1000);
-            const mm = String(date.getUTCMinutes()).padStart(2, '0');
-            const ss = String(date.getUTCSeconds()).padStart(2, '0');
-            return `${mm}:${ss}`;
-        }
-
-        function updateVisuals() {
-            displayTimecode.innerText = calculateMusicalTime(video.currentTime);
-            requestAnimationFrame(updateVisuals);
-        }
-        updateVisuals();
-
-        videoUpload.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                video.src = URL.createObjectURL(file);
-                currentVideoName = file.name;
-                videoNameLabel.style.display = 'block';
-                videoNameLabel.querySelector('span').innerText = currentVideoName;
-            }
-        });
-
-        btnFrameBack.addEventListener('click', () => { if (!video.paused) video.pause(); video.currentTime = Math.max(0, video.currentTime - (1 / FPS)); });
-        btnFrameFwd.addEventListener('click', () => { if (!video.paused) video.pause(); video.currentTime = Math.min(video.duration || 0, video.currentTime + (1 / FPS)); });
-
-        btnBpmMinus.addEventListener('click', () => { bpmInput.value = Math.max(40, parseInt(bpmInput.value) - 1); renderMarkers(); });
-        btnBpmPlus.addEventListener('click', () => { bpmInput.value = Math.min(300, parseInt(bpmInput.value) + 1); renderMarkers(); });
-        bpmInput.addEventListener('change', renderMarkers);
-        beatsInput.addEventListener('change', renderMarkers);
-        beatUnitInput.addEventListener('change', renderMarkers);
-
-        // --- Marcadores ---
-        btnAddMarker.addEventListener('click', () => {
-            markers.push({ id: Date.now(), time: video.currentTime, label: `M${markers.length + 1}` });
-            markers.sort((a, b) => a.time - b.time);
-            renderMarkers();
-        });
-
-        function renderMarkers() {
-            if (markers.length === 0) {
-                markerListEl.innerHTML = '<p style="color: var(--text-muted); font-size: 0.75rem; text-align: center; margin: 5px 0;">Sem marcas.</p>';
-                return;
-            }
-            markerListEl.innerHTML = '';
-            markers.forEach((marker) => {
-                const item = document.createElement('div');
-                item.className = 'marker-item';
-                item.innerHTML = `
-                    <div class="marker-times">
-                        <input type="text" class="marker-input marker-time-input" value="${calculateMusicalTime(marker.time)}" onchange="updateMarkerTime(${marker.id}, this.value)">
-                        <span class="marker-abs">${formatAbsTime(marker.time)}</span>
+            <!-- Seção 1: Arquivo -->
+            <div class="section section-open" id="sec-arquivo">
+                <div class="section-header" onclick="toggleSection('arquivo')">
+                    <div class="section-label">
+                        <span class="icon">📁</span>
+                        Arquivo
                     </div>
-                    <input type="text" class="marker-input" value="${marker.label}" onchange="updateMarkerLabel(${marker.id}, this.value)">
-                    <button class="marker-btn-go" onclick="gotoMarker(${marker.time})">➔</button>
-                    <button class="marker-btn-del" onclick="deleteMarker(${marker.id})">✕</button>
-                `;
-                markerListEl.appendChild(item);
-            });
-        }
+                    <span class="section-chevron">▲</span>
+                </div>
+                <div class="section-body">
+                    <div>
+                        <label class="field-label">Vídeo</label>
+                        <input type="file" id="videoUpload" accept="video/*">
+                    </div>
+                    <div class="video-name-tag" id="videoNameTag">—</div>
+                    <button class="btn btn-accent btn-sm" id="btnSaveProject" style="width:100%">💾 Salvar Projeto</button>
+                </div>
+            </div>
 
-        window.updateMarkerLabel = function(id, newLabel) { const m = markers.find(x => x.id === id); if(m) m.label = newLabel; };
-        window.updateMarkerTime = function(id, newTimecode) {
-            const newSeconds = parseMusicalTimeToSeconds(newTimecode);
-            if (newSeconds !== null) {
-                const m = markers.find(x => x.id === id);
-                if(m) { m.time = newSeconds; markers.sort((a, b) => a.time - b.time); renderMarkers(); }
-            } else { alert("Use M|B|S (ex: 3|2|1)"); renderMarkers(); }
+            <!-- Seção 2: Andamento -->
+            <div class="section section-open" id="sec-andamento">
+                <div class="section-header" onclick="toggleSection('andamento')">
+                    <div class="section-label">
+                        <span class="icon">♩</span>
+                        Andamento & Compasso
+                    </div>
+                    <span class="section-chevron">▲</span>
+                </div>
+                <div class="section-body">
+                    <div class="grid-2">
+                        <div>
+                            <label class="field-label">BPM</label>
+                            <div class="stepper">
+                                <button class="btn" id="btnBpmMinus">−</button>
+                                <input type="number" id="bpmInput" value="120" min="40" max="300">
+                                <button class="btn" id="btnBpmPlus">+</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="field-label">Compasso</label>
+                            <div class="time-sig">
+                                <input type="number" id="beatsPerMeasure" value="4" min="1" max="12">
+                                <span>/</span>
+                                <select id="beatUnit">
+                                    <option value="2">2</option>
+                                    <option value="4" selected>4</option>
+                                    <option value="8">8</option>
+                                    <option value="16">16</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção 3: Gatilho -->
+            <div class="section" id="sec-gatilho">
+                <div class="section-header" onclick="toggleSection('gatilho')">
+                    <div class="section-label">
+                        <span class="icon">🎙</span>
+                        Gatilho de Áudio
+                    </div>
+                    <span class="section-chevron">▼</span>
+                </div>
+                <div class="section-body">
+                    <div class="btn-row">
+                        <button class="btn" id="btnStartMic">Ligar Escuta</button>
+                        <button class="btn btn-outline" id="btnToggleSync" style="display:none">Pausar</button>
+                    </div>
+
+                    <div>
+                        <label class="field-label">Sensibilidade</label>
+                        <div class="mic-row" style="gap:8px; margin-top: 4px;">
+                            <input type="range" id="thresholdSlider" min="1" max="100" value="40" style="flex:1">
+                            <div class="mic-monitor" style="flex:1.8;">
+                                <div class="mic-level" id="micLevel"></div>
+                                <div class="mic-threshold-marker" id="micMarker" style="left:40%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sync-toggle" id="syncToggleRow" style="display:none" onclick="toggleSyncPause()">
+                        <span class="sync-toggle-label">Sincronização ativa</span>
+                        <div class="toggle-switch on" id="syncToggleSwitch">
+                            <div class="toggle-knob"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção 4: Ajuste fino -->
+            <div class="section" id="sec-frames">
+                <div class="section-header" onclick="toggleSection('frames')">
+                    <div class="section-label">
+                        <span class="icon">⏱</span>
+                        Ajuste por Frame
+                    </div>
+                    <span class="section-chevron">▼</span>
+                </div>
+                <div class="section-body">
+                    <div class="frame-controls">
+                        <button class="btn btn-outline" id="btnFrameBack">◀ Frame</button>
+                        <button class="btn btn-outline" id="btnFrameFwd">Frame ▶</button>
+                    </div>
+                    <div class="grid-3">
+                        <button class="btn btn-outline" onclick="jumpFrames(-10)">−10f</button>
+                        <button class="btn btn-outline" onclick="jumpFrames(-5)">−5f</button>
+                        <button class="btn btn-outline" onclick="jumpFrames(5)">+5f</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção 5: Marcas -->
+            <div class="section" id="sec-marcas">
+                <div class="section-header" onclick="toggleSection('marcas')">
+                    <div class="section-label">
+                        <span class="icon">🔖</span>
+                        Marcas
+                        <span class="section-badge" id="markerBadge" style="display:none">0</span>
+                    </div>
+                    <span class="section-chevron">▼</span>
+                </div>
+                <div class="section-body">
+                    <button class="btn btn-accent" id="btnAddMarker">+ Criar Marca no Tempo Atual</button>
+                    <div class="marker-list" id="markerList">
+                        <p class="empty-state">Sem marcas. Clique em "Criar" durante a reprodução.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção 6: Projetos -->
+            <div class="section" id="sec-projetos">
+                <div class="section-header" onclick="toggleSection('projetos')">
+                    <div class="section-label">
+                        <span class="icon">📂</span>
+                        Histórico
+                    </div>
+                    <span class="section-chevron">▼</span>
+                </div>
+                <div class="section-body">
+                    <div class="projects-grid" id="projectsContainer">
+                        <p class="empty-state" style="padding:6px 0">Nenhum projeto salvo.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── DOM refs ──
+    const wrapper       = document.getElementById('appWrapper');
+    const video         = document.getElementById('videoPlayer');
+    const videoUpload   = document.getElementById('videoUpload');
+    const videoNameTag  = document.getElementById('videoNameTag');
+    const bpmInput      = document.getElementById('bpmInput');
+    const btnBpmMinus   = document.getElementById('btnBpmMinus');
+    const btnBpmPlus    = document.getElementById('btnBpmPlus');
+    const beatsInput    = document.getElementById('beatsPerMeasure');
+    const beatUnitInput = document.getElementById('beatUnit');
+    const displayTimecode = document.getElementById('displayTimecode');
+    const btnStartMic   = document.getElementById('btnStartMic');
+    const btnToggleSync = document.getElementById('btnToggleSync');
+    const thresholdSlider = document.getElementById('thresholdSlider');
+    const micLevelBar   = document.getElementById('micLevel');
+    const micMarker     = document.getElementById('micMarker');
+    const btnFrameBack  = document.getElementById('btnFrameBack');
+    const btnFrameFwd   = document.getElementById('btnFrameFwd');
+    const btnAddMarker  = document.getElementById('btnAddMarker');
+    const markerListEl  = document.getElementById('markerList');
+    const btnSaveProject = document.getElementById('btnSaveProject');
+    const projectsContainer = document.getElementById('projectsContainer');
+    const statusPill    = document.getElementById('statusPill');
+    const statusText    = document.getElementById('statusText');
+    const micStatusPill = document.getElementById('micStatusPill');
+    const micStatusText = document.getElementById('micStatusText');
+    const markerBadge   = document.getElementById('markerBadge');
+    const syncToggleRow  = document.getElementById('syncToggleRow');
+    const syncToggleSwitch = document.getElementById('syncToggleSwitch');
+
+    let currentVideoName = "";
+    let markers = [];
+    let audioContext, analyser, dataArray;
+    let isListening = false;
+    let isSyncPaused = false;
+    let lastTriggerTime = 0;
+    const FPS = 30;
+
+    // ── Accordion ──
+    function toggleSection(id) {
+        const sec = document.getElementById('sec-' + id);
+        sec.classList.toggle('section-open');
+        const chevron = sec.querySelector('.section-chevron');
+        chevron.textContent = sec.classList.contains('section-open') ? '▲' : '▼';
+    }
+
+    // ── Layout ──
+    function changeLayout(mode) {
+        wrapper.classList.remove('layout-geral', 'layout-vertical', 'layout-horizontal');
+        wrapper.classList.add('layout-' + mode);
+        document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-' + mode).classList.add('active');
+    }
+
+    // ── Time Math ──
+    function calculateMusicalTime(timeSeconds) {
+        const bpm = parseFloat(bpmInput.value) || 120;
+        const beatsPerMeasure = parseInt(beatsInput.value) || 4;
+        const beatUnit = parseInt(beatUnitInput.value) || 4;
+        const unitFactor = 4 / beatUnit;
+        const secondsPerBeat = (60 / bpm) * unitFactor;
+        const currentBeatTotal = timeSeconds / secondsPerBeat;
+        const measure = Math.floor(currentBeatTotal / beatsPerMeasure) + 1;
+        const beatInMeasure = Math.floor(currentBeatTotal % beatsPerMeasure) + 1;
+        const sixteenthNote = Math.floor((currentBeatTotal % 1) * 4) + 1;
+        return `${measure}|${beatInMeasure}|${sixteenthNote}`;
+    }
+
+    function parseMusicalTimeToSeconds(str) {
+        const parts = str.split('|').map(Number);
+        if (parts.length !== 3 || parts.some(isNaN)) return null;
+        const [m, b, s] = parts;
+        const bpm = parseFloat(bpmInput.value) || 120;
+        const beatsPerMeasure = parseInt(beatsInput.value) || 4;
+        const beatUnit = parseInt(beatUnitInput.value) || 4;
+        const unitFactor = 4 / beatUnit;
+        const secondsPerBeat = (60 / bpm) * unitFactor;
+        const totalBeats = ((m - 1) * beatsPerMeasure) + (b - 1) + ((s - 1) / 4);
+        return totalBeats * secondsPerBeat;
+    }
+
+    function formatAbsTime(seconds) {
+        const d = new Date(seconds * 1000);
+        return `${String(d.getUTCMinutes()).padStart(2,'0')}:${String(d.getUTCSeconds()).padStart(2,'0')}`;
+    }
+
+    function updateVisuals() {
+        displayTimecode.innerText = calculateMusicalTime(video.currentTime);
+        requestAnimationFrame(updateVisuals);
+    }
+    updateVisuals();
+
+    // ── Video Load ──
+    videoUpload.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        video.src = URL.createObjectURL(file);
+        currentVideoName = file.name;
+        videoNameTag.style.display = 'block';
+        videoNameTag.textContent = '📼 ' + currentVideoName;
+        statusPill.classList.add('active');
+        statusText.textContent = currentVideoName.replace(/\.[^.]+$/, '');
+    });
+
+    // ── Frame Navigation ──
+    function jumpFrames(n) {
+        if (!video.paused) video.pause();
+        video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + n / FPS));
+    }
+    btnFrameBack.addEventListener('click', () => jumpFrames(-1));
+    btnFrameFwd.addEventListener('click', () => jumpFrames(1));
+
+    // ── BPM ──
+    btnBpmMinus.addEventListener('click', () => { bpmInput.value = Math.max(40, parseInt(bpmInput.value) - 1); renderMarkers(); });
+    btnBpmPlus.addEventListener('click', ()  => { bpmInput.value = Math.min(300, parseInt(bpmInput.value) + 1); renderMarkers(); });
+    bpmInput.addEventListener('change', renderMarkers);
+    beatsInput.addEventListener('change', renderMarkers);
+    beatUnitInput.addEventListener('change', renderMarkers);
+
+    // ── Markers ──
+    btnAddMarker.addEventListener('click', () => {
+        markers.push({ id: Date.now(), time: video.currentTime, label: `M${markers.length + 1}` });
+        markers.sort((a, b) => a.time - b.time);
+        renderMarkers();
+        // auto-open section
+        const sec = document.getElementById('sec-marcas');
+        if (!sec.classList.contains('section-open')) toggleSection('marcas');
+    });
+
+    function renderMarkers() {
+        markerBadge.style.display = markers.length ? 'inline' : 'none';
+        markerBadge.textContent = markers.length;
+        if (markers.length === 0) {
+            markerListEl.innerHTML = '<p class="empty-state">Sem marcas. Clique em "Criar" durante a reprodução.</p>';
+            return;
+        }
+        markerListEl.innerHTML = '';
+        markers.forEach((marker) => {
+            const item = document.createElement('div');
+            item.className = 'marker-item';
+            item.innerHTML = `
+                <div class="marker-times">
+                    <input type="text" class="marker-input marker-time-input" value="${calculateMusicalTime(marker.time)}" onchange="updateMarkerTime(${marker.id}, this.value)">
+                    <span class="marker-abs">${formatAbsTime(marker.time)}</span>
+                </div>
+                <input type="text" class="marker-input" value="${marker.label}" onchange="updateMarkerLabel(${marker.id}, this.value)" placeholder="Nome">
+                <button class="btn btn-sm" onclick="gotoMarker(${marker.time})">➔</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteMarker(${marker.id})">✕</button>
+            `;
+            markerListEl.appendChild(item);
+        });
+    }
+
+    window.updateMarkerLabel = (id, v) => { const m = markers.find(x => x.id === id); if (m) m.label = v; };
+    window.updateMarkerTime  = (id, v) => {
+        const sec = parseMusicalTimeToSeconds(v);
+        if (sec !== null) {
+            const m = markers.find(x => x.id === id);
+            if (m) { m.time = sec; markers.sort((a, b) => a.time - b.time); renderMarkers(); }
+        } else { alert("Formato: M|B|S (ex: 3|2|1)"); renderMarkers(); }
+    };
+    window.gotoMarker   = (t)  => { video.currentTime = t; };
+    window.deleteMarker = (id) => { markers = markers.filter(x => x.id !== id); renderMarkers(); };
+
+    // ── Projects ──
+    function captureThumbnail() {
+        const c = document.createElement('canvas'); c.width = 120; c.height = 68;
+        try { c.getContext('2d').drawImage(video, 0, 0, c.width, c.height); } catch(e) {}
+        return c.toDataURL('image/jpeg', 0.4);
+    }
+
+    btnSaveProject.addEventListener('click', () => {
+        if (!currentVideoName) { alert("Carregue um vídeo primeiro."); return; }
+        const proj = {
+            id: Date.now(),
+            date: new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }),
+            videoName: currentVideoName,
+            duration: formatAbsTime(video.duration || 0),
+            thumbnail: captureThumbnail(),
+            bpm: bpmInput.value,
+            beatsPerMeasure: beatsInput.value,
+            beatUnit: beatUnitInput.value,
+            markers: [...markers]
         };
-        window.gotoMarker = function(time) { video.currentTime = time; };
-        window.deleteMarker = function(id) { markers = markers.filter(x => x.id !== id); renderMarkers(); };
-
-        // --- Projetos ---
-        function captureThumbnail() {
-            const canvas = document.createElement('canvas'); canvas.width = 120; canvas.height = 68;
-            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-            return canvas.toDataURL('image/jpeg', 0.4);
-        }
-
-        btnSaveProject.addEventListener('click', () => {
-            if (!currentVideoName) { alert("Carregue um vídeo primeiro."); return; }
-            const newProject = {
-                id: Date.now(),
-                date: new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }),
-                videoName: currentVideoName,
-                duration: formatAbsTime(video.duration || 0),
-                thumbnail: captureThumbnail(),
-                bpm: bpmInput.value, beatsPerMeasure: beatsInput.value, beatUnit: beatUnitInput.value, markers: [...markers]
-            };
-            let saved = JSON.parse(localStorage.getItem('gl_projects') || '[]');
-            saved.unshift(newProject);
-            if (saved.length > 5) saved = saved.slice(0, 5);
-            localStorage.setItem('gl_projects', JSON.stringify(saved));
-            renderProjects();
-        });
-
-        function renderProjects() {
-            const saved = JSON.parse(localStorage.getItem('gl_projects') || '[]');
-            if (saved.length === 0) return;
-            projectsContainer.innerHTML = '';
-            saved.forEach(proj => {
-                const card = document.createElement('div'); card.className = 'project-card';
-                card.onclick = () => {
-                    bpmInput.value = proj.bpm; beatsInput.value = proj.beatsPerMeasure; beatUnitInput.value = proj.beatUnit;
-                    markers = proj.markers || []; currentVideoName = proj.videoName; renderMarkers();
-                    videoNameLabel.style.display = 'block';
-                    videoNameLabel.innerHTML = `Carregado. <strong style="color:var(--primary)">Selecione: ${proj.videoName}</strong>`;
-                };
-                card.innerHTML = `<div class="project-thumb" style="background-image:url('${proj.thumbnail}')"><span class="project-dur">${proj.duration}</span></div>
-                                  <div class="project-info"><div class="project-title">${proj.videoName}</div></div>`;
-                projectsContainer.appendChild(card);
-            });
-        }
+        let saved = JSON.parse(localStorage.getItem('gl_projects') || '[]');
+        saved.unshift(proj);
+        if (saved.length > 5) saved = saved.slice(0, 5);
+        localStorage.setItem('gl_projects', JSON.stringify(saved));
         renderProjects();
+        // feedback
+        btnSaveProject.textContent = '✓ Salvo!';
+        setTimeout(() => btnSaveProject.textContent = '💾 Salvar Projeto', 1500);
+    });
 
-        // --- Gatilho de Áudio ---
-        thresholdSlider.addEventListener('input', (e) => { micMarker.style.left = `${e.target.value}%`; });
-        btnToggleSync.addEventListener('click', () => {
-            isSyncPaused = !isSyncPaused;
-            btnToggleSync.innerText = isSyncPaused ? "Retomar" : "Pausar Sinc.";
-            btnToggleSync.classList.toggle('paused', isSyncPaused);
+    function renderProjects() {
+        const saved = JSON.parse(localStorage.getItem('gl_projects') || '[]');
+        if (saved.length === 0) return;
+        projectsContainer.innerHTML = '';
+        saved.forEach(proj => {
+            const card = document.createElement('div');
+            card.className = 'project-card';
+            card.title = proj.videoName;
+            card.onclick = () => {
+                bpmInput.value = proj.bpm;
+                beatsInput.value = proj.beatsPerMeasure;
+                beatUnitInput.value = proj.beatUnit;
+                markers = proj.markers || [];
+                currentVideoName = proj.videoName;
+                renderMarkers();
+                videoNameTag.style.display = 'block';
+                videoNameTag.innerHTML = `⚠️ Selecione: <strong>${proj.videoName}</strong>`;
+            };
+            card.innerHTML = `
+                <div class="project-thumb" style="background-image:url('${proj.thumbnail}')">
+                    <span class="project-dur">${proj.duration}</span>
+                </div>
+                <div class="project-info">
+                    <div class="project-title">${proj.videoName.replace(/\.[^.]+$/, '')}</div>
+                    <div class="project-bpm">${proj.bpm} BPM · ${proj.beatsPerMeasure}/${proj.beatUnit}</div>
+                </div>`;
+            projectsContainer.appendChild(card);
         });
+    }
+    renderProjects();
 
-        btnStartMic.addEventListener('click', async () => {
-            if (isListening) return;
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                audioContext = new AudioContext(); analyser = audioContext.createAnalyser(); analyser.fftSize = 256;
-                audioContext.createMediaStreamSource(stream).connect(analyser);
-                dataArray = new Uint8Array(analyser.frequencyBinCount);
-                isListening = true; btnStartMic.style.display = "none"; btnToggleSync.style.display = "block";
-                monitorAudio();
-            } catch (err) { console.error(err); }
-        });
+    // ── Audio Trigger ──
+    thresholdSlider.addEventListener('input', e => { micMarker.style.left = `${e.target.value}%`; });
 
-        function monitorAudio() {
-            if (!isListening) return;
-            analyser.getByteFrequencyData(dataArray);
-            let sum = 0; for(let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-            let volumePercent = (sum / dataArray.length / 255) * 250;
-            micLevelBar.style.width = `${Math.min(100, volumePercent)}%`;
-            const now = Date.now();
-            if (volumePercent > parseInt(thresholdSlider.value) && video.paused && !isSyncPaused && (now - lastTriggerTime > 1000)) {
-                video.play(); lastTriggerTime = now;
-                micLevelBar.style.backgroundColor = 'var(--accent)';
-                setTimeout(() => micLevelBar.style.backgroundColor = 'var(--primary)', 300);
-            }
-            requestAnimationFrame(monitorAudio);
+    function toggleSyncPause() {
+        isSyncPaused = !isSyncPaused;
+        syncToggleSwitch.classList.toggle('on', !isSyncPaused);
+        const label = syncToggleRow.querySelector('.sync-toggle-label');
+        label.textContent = isSyncPaused ? 'Sincronização pausada' : 'Sincronização ativa';
+        micStatusText.textContent = isSyncPaused ? 'Sinc. pausada' : 'Escutando';
+        micStatusPill.style.borderColor = isSyncPaused ? 'var(--accent)' : 'var(--primary)';
+        micStatusPill.style.color = isSyncPaused ? 'var(--accent)' : 'var(--primary)';
+    }
+    window.toggleSyncPause = toggleSyncPause;
+
+    btnStartMic.addEventListener('click', async () => {
+        if (isListening) return;
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioContext = new AudioContext();
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            audioContext.createMediaStreamSource(stream).connect(analyser);
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            isListening = true;
+            btnStartMic.textContent = '✓ Microfone ativo';
+            btnStartMic.disabled = true;
+            btnStartMic.style.opacity = '0.6';
+            syncToggleRow.style.display = 'flex';
+            micStatusPill.style.display = 'flex';
+            micStatusText.textContent = 'Escutando';
+            monitorAudio();
+        } catch (err) {
+            btnStartMic.textContent = '⚠ Permissão negada';
+            console.error(err);
         }
-    </script>
+    });
+
+    function monitorAudio() {
+        if (!isListening) return;
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+        let volumePercent = (sum / dataArray.length / 255) * 250;
+        micLevelBar.style.width = `${Math.min(100, volumePercent)}%`;
+        const now = Date.now();
+        if (volumePercent > parseInt(thresholdSlider.value) && video.paused && !isSyncPaused && (now - lastTriggerTime > 1000)) {
+            video.play();
+            lastTriggerTime = now;
+            micLevelBar.style.backgroundColor = 'var(--accent)';
+            setTimeout(() => micLevelBar.style.backgroundColor = 'var(--primary)', 300);
+        }
+        requestAnimationFrame(monitorAudio);
+    }
+</script>
 </body>
 </html>
