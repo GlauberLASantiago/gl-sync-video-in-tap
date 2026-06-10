@@ -9,7 +9,7 @@
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%23BCDFB9'/><text y='65' x='15' font-family='sans-serif' font-size='50' font-weight='bold' fill='%232c3e50'>GL</text></svg>">
     <style>
         :root {
-            --primary: #BCDFB9;
+            --primary: #2d8a4e;
             --accent: #C87F8B;
             --bg-overlay: rgba(18, 18, 22, 0.93);
             --panel-bg: rgba(30, 30, 36, 0.97);
@@ -79,7 +79,7 @@
             justify-content: center;
             font-weight: 900;
             font-size: 0.85rem;
-            color: #1a1a1a;
+            color: #ffffff;
             letter-spacing: -1px;
         }
 
@@ -126,7 +126,7 @@
 
         .layout-btn.active {
             background: var(--primary);
-            color: #111;
+            color: #ffffff;
         }
 
         .layout-btn:hover:not(.active) {
@@ -383,7 +383,7 @@
         /* Buttons */
         .btn {
             background: var(--primary);
-            color: #111;
+            color: #ffffff;
             font-weight: 700;
             border: none;
             padding: 0.42rem 0.7rem;
@@ -636,13 +636,26 @@
             border-radius: 5px;
             padding: 5px 7px;
             display: grid;
-            grid-template-columns: 70px 1fr auto auto;
+            grid-template-columns: 70px 1fr auto;
             gap: 5px;
             align-items: center;
+            transition: all 0.15s ease;
         }
 
         .marker-item:hover {
             border-color: rgba(188, 223, 185, 0.2);
+        }
+
+        .marker-item.selected {
+            border-color: var(--primary) !important;
+            background: rgba(45, 138, 78, 0.2) !important;
+            box-shadow: 0 0 8px rgba(45, 138, 78, 0.4);
+        }
+
+        .marker-item.editing {
+            border-color: #e5c158 !important;
+            background: rgba(229, 193, 88, 0.2) !important;
+            box-shadow: 0 0 10px rgba(229, 193, 88, 0.3) !important;
         }
 
         .marker-times {
@@ -870,6 +883,17 @@
                         </label>
                         <button class="btn btn-accent btn-sm" id="btnAddMarker" style="width: auto; padding: 3px 10px;">+ Criar Marca no Tempo Atual</button>
                     </div>
+                    
+                    <!-- Audio trigger control for marks -->
+                    <div style="display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.25); padding: 5px 8px; border-radius: 5px; border: 1px solid var(--border-active);">
+                        <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Som das Marcas:</span>
+                        <div class="layout-selector" style="margin-left: auto;">
+                            <button class="layout-btn active" id="btnAudioOff" onclick="setMarkerAudio('off')">Desativado</button>
+                            <button class="layout-btn" id="btnAudioShort" onclick="setMarkerAudio('short')">Curto</button>
+                            <button class="layout-btn" id="btnAudioLong" onclick="setMarkerAudio('long')">Longo</button>
+                        </div>
+                    </div>
+
                     <div class="marker-list" id="markerList" style="max-height: 250px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border); border-radius: 6px; padding: 6px;">
                         <p class="empty-state" style="padding: 10px 0;">Sem marcas. Clique em "Criar" durante a reprodução.</p>
                     </div>
@@ -1038,6 +1062,8 @@
 
         let currentVideoName = "";
         let markers = [];
+        let selectedMarkerId = null;
+        let editingMarkerId = null;
         let audioContext, analyser, dataArray;
         let isListening = false;
         let isSyncPaused = false;
@@ -1097,9 +1123,109 @@
             return `${String(minutes).padStart(2, '0')}:${String(secondsPart).padStart(2, '0')}:${String(frames).padStart(2, '0')}`;
         }
 
+        let lastVideoTime = 0;
+        let markerAudioEnabled = false;
+        let markerAudioType = 'off'; // 'off', 'short', 'long'
+        let soundAudioCtx = null;
+
+        function initSoundAudioCtx() {
+            if (!soundAudioCtx) {
+                soundAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (soundAudioCtx.state === 'suspended') {
+                soundAudioCtx.resume();
+            }
+        }
+
+        // Initialize/resume AudioContext on first user interaction to satisfy browser policy
+        ['click', 'pointerdown', 'keydown'].forEach(evt => {
+            document.addEventListener(evt, initSoundAudioCtx, { once: true });
+        });
+
+        function playMarkerSound() {
+            initSoundAudioCtx();
+            if (!soundAudioCtx) return;
+            
+            const osc = soundAudioCtx.createOscillator();
+            const gainNode = soundAudioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(soundAudioCtx.destination);
+            
+            if (markerAudioType === 'short') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(800, soundAudioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.8, soundAudioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, soundAudioCtx.currentTime + 0.08);
+                osc.start();
+                osc.stop(soundAudioCtx.currentTime + 0.08);
+            } else if (markerAudioType === 'long') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, soundAudioCtx.currentTime); // A4
+                gainNode.gain.setValueAtTime(0, soundAudioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.4, soundAudioCtx.currentTime + 1.0); // 1s fade-in
+                gainNode.gain.linearRampToValueAtTime(0, soundAudioCtx.currentTime + 2.0); // total 2s duration (fades out from 1s to 2s)
+                osc.start();
+                osc.stop(soundAudioCtx.currentTime + 2.0);
+            }
+        }
+
+        function setMarkerAudio(mode) {
+            document.querySelectorAll('#btnAudioOff, #btnAudioShort, #btnAudioLong').forEach(b => b.classList.remove('active'));
+            
+            initSoundAudioCtx();
+
+            if (mode === 'off') {
+                markerAudioEnabled = false;
+                markerAudioType = 'off';
+                document.getElementById('btnAudioOff').classList.add('active');
+            } else {
+                markerAudioEnabled = true;
+                markerAudioType = mode;
+                document.getElementById(mode === 'short' ? 'btnAudioShort' : 'btnAudioLong').classList.add('active');
+                
+                // Play preview
+                playMarkerSound();
+            }
+        }
+        window.setMarkerAudio = setMarkerAudio;
+
+        // Also resume AudioContext when video starts playing
+        video.addEventListener('play', () => {
+            if (soundAudioCtx && soundAudioCtx.state === 'suspended') {
+                soundAudioCtx.resume();
+            }
+        });
+
+        video.addEventListener('seeked', () => {
+            // Set lastVideoTime slightly before currentTime to catch markers exactly at the seek target
+            lastVideoTime = video.currentTime - 0.001;
+        });
+
+        let wasPaused = true;
+
         function updateVisuals() {
-            displayTimecode.innerText = calculateMusicalTime(video.currentTime);
-            displayAbsTimecode.innerText = formatAbsTime(video.currentTime);
+            const currTime = video.currentTime;
+            const isPaused = video.paused;
+            
+            if (markerAudioEnabled && !isPaused) {
+                let effectiveLastTime = lastVideoTime;
+                if (wasPaused) {
+                    effectiveLastTime = lastVideoTime - 0.001; // Offset to catch markers exactly at the start position
+                }
+                
+                if (currTime > effectiveLastTime && (currTime - effectiveLastTime < 0.5)) {
+                    markers.forEach(m => {
+                        if (effectiveLastTime < m.time && currTime >= m.time) {
+                            playMarkerSound();
+                        }
+                    });
+                }
+            }
+            
+            wasPaused = isPaused;
+            lastVideoTime = currTime;
+            displayTimecode.innerText = calculateMusicalTime(currTime);
+            displayAbsTimecode.innerText = formatAbsTime(currTime);
             requestAnimationFrame(updateVisuals);
         }
         updateVisuals();
@@ -1120,7 +1246,17 @@
         // ── Frame Navigation ──
         function jumpFrames(n) {
             if (!video.paused) video.pause();
-            video.currentTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + n / FPS));
+            const newTime = Math.max(0, Math.min(video.duration || 0, video.currentTime + n / FPS));
+            video.currentTime = newTime;
+
+            if (selectedMarkerId !== null) {
+                const marker = markers.find(m => m.id === selectedMarkerId);
+                if (marker) {
+                    marker.time = newTime;
+                    markers.sort((a, b) => a.time - b.time);
+                    renderMarkers();
+                }
+            }
         }
         btnFrameBack.addEventListener('click', () => jumpFrames(-1));
         btnFrameFwd.addEventListener('click', () => jumpFrames(1));
@@ -1134,8 +1270,10 @@
 
         // ── Markers ──
         btnAddMarker.addEventListener('click', () => {
-            markers.push({ id: Date.now(), time: video.currentTime, label: `M${markers.length + 1}` });
+            const newMarker = { id: Date.now(), time: video.currentTime, label: `M${markers.length + 1}` };
+            markers.push(newMarker);
             markers.sort((a, b) => a.time - b.time);
+            selectedMarkerId = newMarker.id; // Automatically select the newly created marker
             renderMarkers();
         });
 
@@ -1149,30 +1287,146 @@
             markerListEl.innerHTML = '';
             markers.forEach((marker) => {
                 const item = document.createElement('div');
-                item.className = 'marker-item';
+                item.className = 'marker-item' + (selectedMarkerId === marker.id ? ' selected' : '');
+                item.style.cursor = 'pointer';
+
                 item.innerHTML = `
-                <div class="marker-times">
-                    <input type="text" class="marker-input marker-time-input" value="${calculateMusicalTime(marker.time)}" onchange="updateMarkerTime(${marker.id}, this.value)">
-                    <span class="marker-abs">${formatAbsTime(marker.time)}</span>
-                </div>
-                <input type="text" class="marker-input" value="${marker.label}" onchange="updateMarkerLabel(${marker.id}, this.value)" placeholder="Nome">
-                <button class="btn btn-sm" onclick="gotoMarker(${marker.time})">➔</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteMarker(${marker.id})">✕</button>
-            `;
+                    <div class="marker-times">
+                        <input type="text" class="marker-input marker-time-input" value="${calculateMusicalTime(marker.time)}" readonly style="cursor: pointer;">
+                        <span class="marker-abs">${formatAbsTime(marker.time)}</span>
+                    </div>
+                    <input type="text" class="marker-input marker-label-input" value="${marker.label}" readonly placeholder="Nome" style="cursor: pointer;">
+                    <button class="btn btn-sm btn-danger btn-delete-marker" style="width: auto;">✕</button>
+                `;
+
+                const timeInput = item.querySelector('.marker-time-input');
+                const labelInput = item.querySelector('.marker-label-input');
+                const delBtn = item.querySelector('.btn-delete-marker');
+
+                // Prevent focus caret and keyboard on single click if readonly
+                const preventFocusIfReadonly = (e) => {
+                    if (e.target.hasAttribute('readonly')) {
+                        e.preventDefault();
+                    }
+                };
+                timeInput.addEventListener('mousedown', preventFocusIfReadonly);
+                labelInput.addEventListener('mousedown', preventFocusIfReadonly);
+                timeInput.addEventListener('touchstart', preventFocusIfReadonly);
+                labelInput.addEventListener('touchstart', preventFocusIfReadonly);
+
+                // Delete button handler
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteMarker(marker.id);
+                });
+
+                // Click handler for selection/deselection
+                const handleItemClick = (e) => {
+                    if (editingMarkerId !== null) return;
+                    
+                    if (selectedMarkerId === marker.id) {
+                        selectedMarkerId = null;
+                        item.classList.remove('selected');
+                    } else {
+                        selectedMarkerId = marker.id;
+                        video.currentTime = marker.time;
+                        document.querySelectorAll('.marker-item').forEach(el => el.classList.remove('selected'));
+                        item.classList.add('selected');
+                    }
+                };
+                
+                item.addEventListener('click', handleItemClick);
+
+                // Double click handler for manual editing
+                const handleDblClick = (e) => {
+                    if (editingMarkerId !== null) return;
+                    
+                    editingMarkerId = marker.id;
+                    selectedMarkerId = marker.id;
+                    document.querySelectorAll('.marker-item').forEach(el => {
+                        if (el !== item) el.classList.remove('selected', 'editing');
+                    });
+                    item.classList.add('selected', 'editing');
+
+                    timeInput.removeAttribute('readonly');
+                    labelInput.removeAttribute('readonly');
+                    timeInput.style.cursor = 'text';
+                    labelInput.style.cursor = 'text';
+
+                    timeInput.style.borderBottom = '1px dashed #e5c158';
+                    labelInput.style.borderBottom = '1px dashed #e5c158';
+
+                    if (e.target === labelInput) {
+                        labelInput.focus();
+                        labelInput.select();
+                    } else {
+                        timeInput.focus();
+                        timeInput.select();
+                    }
+
+                    let saved = false;
+                    const saveEdits = () => {
+                        if (saved || editingMarkerId !== marker.id) return;
+                        saved = true;
+                        
+                        editingMarkerId = null;
+                        item.classList.remove('editing');
+                        timeInput.setAttribute('readonly', true);
+                        labelInput.setAttribute('readonly', true);
+                        timeInput.style.cursor = 'pointer';
+                        labelInput.style.cursor = 'pointer';
+                        timeInput.style.borderBottom = 'none';
+                        labelInput.style.borderBottom = 'none';
+
+                        const newTimeStr = timeInput.value;
+                        const newLabel = labelInput.value;
+
+                        marker.label = newLabel;
+
+                        const sec = parseMusicalTimeToSeconds(newTimeStr);
+                        if (sec !== null) {
+                            marker.time = sec;
+                            markers.sort((a, b) => a.time - b.time);
+                        } else {
+                            alert("Formato de tempo musical inválido! Use: Compasso|Tempo|Subdivisão (ex: 3|2|1)");
+                        }
+
+                        renderMarkers();
+                    };
+
+                    const handleKeyDown = (evt) => {
+                        if (evt.key === 'Enter') {
+                            evt.preventDefault();
+                            saveEdits();
+                        } else if (evt.key === 'Escape') {
+                            evt.preventDefault();
+                            editingMarkerId = null;
+                            renderMarkers();
+                        }
+                    };
+
+                    timeInput.addEventListener('blur', saveEdits, { once: true });
+                    labelInput.addEventListener('blur', saveEdits, { once: true });
+                    timeInput.addEventListener('keydown', handleKeyDown);
+                    labelInput.addEventListener('keydown', handleKeyDown);
+                };
+
+                item.addEventListener('dblclick', handleDblClick);
+
                 markerListEl.appendChild(item);
             });
         }
 
-        window.updateMarkerLabel = (id, v) => { const m = markers.find(x => x.id === id); if (m) m.label = v; };
-        window.updateMarkerTime = (id, v) => {
-            const sec = parseMusicalTimeToSeconds(v);
-            if (sec !== null) {
-                const m = markers.find(x => x.id === id);
-                if (m) { m.time = sec; markers.sort((a, b) => a.time - b.time); renderMarkers(); }
-            } else { alert("Formato: M|B|S (ex: 3|2|1)"); renderMarkers(); }
+        window.deleteMarker = (id) => {
+            if (selectedMarkerId === id) {
+                selectedMarkerId = null;
+            }
+            if (editingMarkerId === id) {
+                editingMarkerId = null;
+            }
+            markers = markers.filter(x => x.id !== id);
+            renderMarkers();
         };
-        window.gotoMarker = (t) => { video.currentTime = t; };
-        window.deleteMarker = (id) => { markers = markers.filter(x => x.id !== id); renderMarkers(); };
 
         // ── Import/Export MusicXML ──
         btnExportXml.addEventListener('click', () => {
@@ -1437,6 +1691,7 @@
 
                 // Parsing Marcas
                 markers = [];
+                selectedMarkerId = null;
                 let mId = Date.now();
                 
                 const measures = xmlDoc.querySelectorAll('part > measure');
@@ -1556,6 +1811,88 @@
             }
             requestAnimationFrame(monitorAudio);
         }
+
+        // ── Keyboard Shortcuts ──
+        function gotoPreviousMarker() {
+            if (markers.length === 0) return;
+            const prevMarkers = markers.filter(m => m.time < video.currentTime - 0.1);
+            let targetMarker;
+            if (prevMarkers.length > 0) {
+                targetMarker = prevMarkers[prevMarkers.length - 1];
+            } else {
+                targetMarker = markers[markers.length - 1];
+            }
+            if (targetMarker) {
+                selectedMarkerId = targetMarker.id;
+                video.currentTime = targetMarker.time;
+                renderMarkers();
+            }
+        }
+
+        function gotoNextMarker() {
+            if (markers.length === 0) return;
+            const nextMarker = markers.find(m => m.time > video.currentTime + 0.1);
+            let targetMarker;
+            if (nextMarker) {
+                targetMarker = nextMarker;
+            } else {
+                targetMarker = markers[0];
+            }
+            if (targetMarker) {
+                selectedMarkerId = targetMarker.id;
+                video.currentTime = targetMarker.time;
+                renderMarkers();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const active = document.activeElement;
+            if (active && (active.tagName === 'INPUT' || active.tagName === 'SELECT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) {
+                return;
+            }
+
+            const key = e.key;
+            const shift = e.shiftKey;
+
+            if (key === ' ') {
+                e.preventDefault();
+                if (video.paused) {
+                    video.play();
+                } else {
+                    video.pause();
+                }
+            } else if (key.toLowerCase() === 'm') {
+                e.preventDefault();
+                btnAddMarker.click();
+            } else if (key === 'ArrowLeft') {
+                e.preventDefault();
+                if (shift) {
+                    jumpFrames(-5);
+                } else {
+                    jumpFrames(-1);
+                }
+            } else if (key === 'ArrowRight') {
+                e.preventDefault();
+                if (shift) {
+                    jumpFrames(5);
+                } else {
+                    jumpFrames(1);
+                }
+            } else if (key.toLowerCase() === 's') {
+                e.preventDefault();
+                if (isListening) {
+                    toggleSyncPause();
+                } else {
+                    btnStartMic.click();
+                }
+            } else if (key === '[') {
+                e.preventDefault();
+                gotoPreviousMarker();
+            } else if (key === ']') {
+                e.preventDefault();
+                gotoNextMarker();
+            }
+        });
     </script>
 </body>
 
