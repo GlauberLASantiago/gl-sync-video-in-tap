@@ -51,7 +51,7 @@
 
         .container {
             display: grid;
-            grid-template-columns: 1fr 380px;
+            grid-template-columns: 1fr 400px;
             gap: 2rem;
         }
 
@@ -136,6 +136,8 @@
         button:hover { filter: brightness(1.1); }
         button.action-btn { background-color: var(--accent); color: #fff; }
         button.outline-btn { background-color: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        button.pause-sync-btn { background-color: transparent; border: 1px solid var(--accent); color: var(--accent); }
+        button.pause-sync-btn.paused { background-color: var(--accent); color: #fff; }
         
         /* BPM Stepper e Time Signature */
         .stepper, .time-signature { display: flex; width: 100%; }
@@ -155,16 +157,16 @@
 
         hr { width: 100%; border: 0; border-top: 1px solid var(--border); margin: 0; }
 
-        /* Marcadores */
+        /* Marcadores Editáveis */
         .marker-list { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 5px; }
-        .marker-item { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 4px; padding: 8px; display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px; align-items: center; }
-        .marker-times { display: flex; flex-direction: column; font-family: monospace; font-size: 0.8rem; line-height: 1.2; }
-        .marker-abs { color: var(--text-muted); }
-        .marker-mus { color: var(--primary); font-weight: bold; font-size: 0.9rem; }
-        .marker-input { background: transparent !important; border: none !important; border-bottom: 1px dashed var(--border) !important; border-radius: 0 !important; padding: 2px !important; color: #fff !important; font-size: 0.9rem !important; }
-        .marker-input:focus { border-bottom: 1px solid var(--primary) !important; box-shadow: none !important; }
-        .marker-btn-go { background: var(--primary); color: #111; padding: 4px 10px; font-size: 0.8rem; width: auto; }
-        .marker-btn-del { background: transparent; color: var(--accent); padding: 4px 8px; font-size: 0.8rem; border: 1px solid var(--accent); width: auto; }
+        .marker-item { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 4px; padding: 8px; display: grid; grid-template-columns: 80px 1fr auto auto; gap: 8px; align-items: center; }
+        .marker-times { display: flex; flex-direction: column; gap: 2px; }
+        .marker-abs { color: var(--text-muted); font-family: monospace; font-size: 0.7rem; text-align: center; }
+        .marker-input { background: rgba(0,0,0,0.2) !important; border: 1px solid transparent !important; border-bottom: 1px dashed var(--border) !important; border-radius: 2px !important; padding: 4px !important; color: #fff !important; font-size: 0.85rem !important; transition: border 0.2s; }
+        .marker-input:focus { border-bottom: 1px solid var(--primary) !important; background: rgba(0,0,0,0.5) !important; }
+        .marker-time-input { color: var(--primary) !important; font-weight: bold; font-family: monospace; text-align: center; font-size: 0.95rem !important; padding: 2px !important; }
+        .marker-btn-go { background: var(--primary); color: #111; padding: 6px 12px; font-size: 0.8rem; width: auto; font-weight: bold; }
+        .marker-btn-del { background: transparent; color: var(--accent); padding: 6px 10px; font-size: 0.8rem; border: 1px solid var(--accent); width: auto; }
 
         /* Projetos */
         .projects-section { margin-top: 2rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; }
@@ -177,7 +179,6 @@
         .project-title { font-size: 0.85rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
         .project-date { font-size: 0.7rem; color: var(--text-muted); }
 
-        /* Scrollbar custom */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -226,9 +227,12 @@
 
                 <div class="control-group">
                     <label>2. Gatilho Sonoro (Somente Play)</label>
-                    <button id="btnStartMic">Iniciar Escuta do Microfone</button>
-                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
-                        <input type="range" id="thresholdSlider" min="1" max="100" value="40" style="flex: 1; padding: 0;">
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btnStartMic" style="flex: 1;">Iniciar Escuta</button>
+                        <button id="btnToggleSync" class="pause-sync-btn" style="display: none; flex: 1;">Pausar Sinc.</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                        <input type="range" id="thresholdSlider" min="1" max="100" value="40" style="flex: 1; padding: 0;" title="Sensibilidade">
                         <div class="mic-monitor" style="flex: 2;">
                             <div class="mic-level" id="micLevel"></div>
                             <div class="mic-threshold-marker" id="micMarker" style="left: 40%;"></div>
@@ -263,11 +267,21 @@
                 </div>
 
                 <hr>
+                
+                <div class="control-group">
+                    <label>Navegação Fina (Frame a Frame)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btnFrameBack" class="outline-btn" style="flex: 1; font-family: monospace; font-size: 1.1rem;">&lt; Frame</button>
+                        <button id="btnFrameFwd" class="outline-btn" style="flex: 1; font-family: monospace; font-size: 1.1rem;">Frame &gt;</button>
+                    </div>
+                </div>
+
+                <hr>
 
                 <div class="control-group">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <label>Marcas de Sincronização</label>
-                        <button id="btnAddMarker" class="outline-btn" style="width: auto; padding: 4px 12px; font-size: 0.8rem;">+ Criar Marca</button>
+                        <button id="btnAddMarker" class="action-btn" style="width: auto; padding: 4px 12px; font-size: 0.8rem;">+ Criar Marca</button>
                     </div>
                     <div class="marker-list" id="markerList">
                         <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; margin: 10px 0;">Nenhuma marca criada.</p>
@@ -279,32 +293,40 @@
     </div>
 
     <script>
-        // DOM Elements
         const video = document.getElementById('videoPlayer');
         const videoUpload = document.getElementById('videoUpload');
         const videoNameLabel = document.getElementById('videoNameLabel');
+        
         const bpmInput = document.getElementById('bpmInput');
         const btnBpmMinus = document.getElementById('btnBpmMinus');
         const btnBpmPlus = document.getElementById('btnBpmPlus');
         const beatsInput = document.getElementById('beatsPerMeasure');
         const beatUnitInput = document.getElementById('beatUnit');
         const displayTimecode = document.getElementById('displayTimecode');
+        
         const btnStartMic = document.getElementById('btnStartMic');
+        const btnToggleSync = document.getElementById('btnToggleSync');
         const thresholdSlider = document.getElementById('thresholdSlider');
         const micLevelBar = document.getElementById('micLevel');
         const micMarker = document.getElementById('micMarker');
+        
+        const btnFrameBack = document.getElementById('btnFrameBack');
+        const btnFrameFwd = document.getElementById('btnFrameFwd');
         
         const btnAddMarker = document.getElementById('btnAddMarker');
         const markerListEl = document.getElementById('markerList');
         const btnSaveProject = document.getElementById('btnSaveProject');
         const projectsContainer = document.getElementById('projectsContainer');
 
-        // Estado do App
         let currentVideoName = "";
         let markers = [];
         let audioContext, analyser, dataArray;
         let isListening = false;
+        let isSyncPaused = false;
         let lastTriggerTime = 0;
+        
+        // Padrão de 30 frames por segundo para o cálculo (aprox. 0.0333s por frame)
+        const FPS = 30;
 
         // --- Core Time Math ---
         function calculateMusicalTime(timeSeconds) {
@@ -324,6 +346,22 @@
             return `${measure}|${beatInMeasure}|${sixteenthNote}`;
         }
 
+        function parseMusicalTimeToSeconds(timecodeStr) {
+            const parts = timecodeStr.split('|').map(Number);
+            if (parts.length !== 3 || parts.some(isNaN)) return null;
+
+            const [m, b, s] = parts;
+            const bpm = parseFloat(bpmInput.value) || 120;
+            const beatsPerMeasure = parseInt(beatsInput.value) || 4;
+            const beatUnit = parseInt(beatUnitInput.value) || 4;
+            
+            const unitFactor = 4 / beatUnit; 
+            const secondsPerBeat = (60 / bpm) * unitFactor;
+            
+            const totalBeats = ((m - 1) * beatsPerMeasure) + (b - 1) + ((s - 1) / 4);
+            return totalBeats * secondsPerBeat;
+        }
+
         function formatAbsTime(seconds) {
             const date = new Date(seconds * 1000);
             const mm = String(date.getUTCMinutes()).padStart(2, '0');
@@ -338,7 +376,6 @@
         }
         updateVisuals();
 
-        // --- Eventos Básicos ---
         videoUpload.addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
@@ -349,13 +386,24 @@
             }
         });
 
+        // --- Navegação Fina (Frame a Frame) ---
+        btnFrameBack.addEventListener('click', () => {
+            if (!video.paused) video.pause();
+            video.currentTime = Math.max(0, video.currentTime - (1 / FPS));
+        });
+
+        btnFrameFwd.addEventListener('click', () => {
+            if (!video.paused) video.pause();
+            video.currentTime = Math.min(video.duration || 0, video.currentTime + (1 / FPS));
+        });
+
         btnBpmMinus.addEventListener('click', () => { bpmInput.value = Math.max(40, parseInt(bpmInput.value) - 1); renderMarkers(); });
         btnBpmPlus.addEventListener('click', () => { bpmInput.value = Math.min(300, parseInt(bpmInput.value) + 1); renderMarkers(); });
         bpmInput.addEventListener('change', renderMarkers);
         beatsInput.addEventListener('change', renderMarkers);
         beatUnitInput.addEventListener('change', renderMarkers);
 
-        // --- Marcadores ---
+        // --- Marcadores Editáveis ---
         btnAddMarker.addEventListener('click', () => {
             const newMarker = {
                 id: Date.now(),
@@ -363,7 +411,6 @@
                 label: `Marca ${markers.length + 1}`
             };
             markers.push(newMarker);
-            // Ordenar cronologicamente
             markers.sort((a, b) => a.time - b.time);
             renderMarkers();
         });
@@ -375,7 +422,7 @@
             }
 
             markerListEl.innerHTML = '';
-            markers.forEach((marker, index) => {
+            markers.forEach((marker) => {
                 const musTime = calculateMusicalTime(marker.time);
                 const absTime = formatAbsTime(marker.time);
                 
@@ -383,10 +430,10 @@
                 item.className = 'marker-item';
                 item.innerHTML = `
                     <div class="marker-times">
-                        <span class="marker-mus">${musTime}</span>
+                        <input type="text" class="marker-input marker-time-input" value="${musTime}" title="Editar M|B|S" onchange="updateMarkerTime(${marker.id}, this.value)">
                         <span class="marker-abs">${absTime}</span>
                     </div>
-                    <input type="text" class="marker-input" value="${marker.label}" onchange="updateMarkerLabel(${marker.id}, this.value)">
+                    <input type="text" class="marker-input" value="${marker.label}" onchange="updateMarkerLabel(${marker.id}, this.value)" placeholder="Nome da marca">
                     <button class="marker-btn-go" onclick="gotoMarker(${marker.time})">Ir</button>
                     <button class="marker-btn-del" onclick="deleteMarker(${marker.id})">✕</button>
                 `;
@@ -399,14 +446,23 @@
             if(m) m.label = newLabel;
         };
 
-        window.gotoMarker = function(time) {
-            video.currentTime = time;
+        window.updateMarkerTime = function(id, newTimecode) {
+            const newSeconds = parseMusicalTimeToSeconds(newTimecode);
+            if (newSeconds !== null) {
+                const m = markers.find(x => x.id === id);
+                if(m) {
+                    m.time = newSeconds;
+                    markers.sort((a, b) => a.time - b.time); 
+                    renderMarkers();
+                }
+            } else {
+                alert("Formato inválido. Use Compasso|Tempo|Semicolcheia (ex: 3|2|1)");
+                renderMarkers(); 
+            }
         };
 
-        window.deleteMarker = function(id) {
-            markers = markers.filter(x => x.id !== id);
-            renderMarkers();
-        };
+        window.gotoMarker = function(time) { video.currentTime = time; };
+        window.deleteMarker = function(id) { markers = markers.filter(x => x.id !== id); renderMarkers(); };
 
         // --- Projetos e LocalStorage ---
         function captureThumbnail() {
@@ -431,7 +487,6 @@
             }
 
             const thumbBase64 = captureThumbnail();
-            
             const newProject = {
                 id: Date.now(),
                 date: new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }),
@@ -445,15 +500,12 @@
             };
 
             let savedProjects = JSON.parse(localStorage.getItem('gl_projects') || '[]');
-            // Adiciona no topo
             savedProjects.unshift(newProject);
-            // Mantém apenas os 5 últimos
             if (savedProjects.length > 5) savedProjects = savedProjects.slice(0, 5);
             
             localStorage.setItem('gl_projects', JSON.stringify(savedProjects));
             renderProjects();
             
-            // Feedback visual do botão
             const oldText = btnSaveProject.innerText;
             btnSaveProject.innerText = "✓ Salvo!";
             btnSaveProject.style.backgroundColor = "#27ae60";
@@ -493,20 +545,27 @@
             currentVideoName = proj.videoName;
             
             renderMarkers();
-            
             videoNameLabel.style.display = 'block';
-            videoNameLabel.innerHTML = `Projeto carregado. <strong style="color:var(--primary)">Selecione o arquivo de vídeo acima: ${proj.videoName}</strong>`;
-            
-            // Foca a atenção do usuário no input de arquivo
+            videoNameLabel.innerHTML = `Projeto carregado. <strong style="color:var(--primary)">Selecione o arquivo de vídeo: ${proj.videoName}</strong>`;
             videoUpload.focus();
             window.scrollTo(0, 0);
         }
 
-        // Inicializar
         renderProjects();
 
         // --- Microfone / Gatilho ---
         thresholdSlider.addEventListener('input', (e) => { micMarker.style.left = `${e.target.value}%`; });
+
+        btnToggleSync.addEventListener('click', () => {
+            isSyncPaused = !isSyncPaused;
+            if (isSyncPaused) {
+                btnToggleSync.innerText = "Retomar Sinc.";
+                btnToggleSync.classList.add('paused');
+            } else {
+                btnToggleSync.innerText = "Pausar Sinc.";
+                btnToggleSync.classList.remove('paused');
+            }
+        });
 
         btnStartMic.addEventListener('click', async () => {
             if (isListening) return;
@@ -520,15 +579,12 @@
                 dataArray = new Uint8Array(analyser.frequencyBinCount);
                 
                 isListening = true;
-                btnStartMic.innerText = "Escutando Gatilho...";
-                btnStartMic.style.backgroundColor = "rgba(188, 223, 185, 0.2)";
-                btnStartMic.style.border = "1px solid var(--primary)";
-                btnStartMic.style.color = "var(--primary)";
+                btnStartMic.style.display = "none";
+                btnToggleSync.style.display = "block";
                 
                 monitorAudio();
             } catch (err) {
-                btnStartMic.innerText = "Erro no Microfone";
-                console.error(err);
+                console.error("Erro no Microfone", err);
             }
         });
 
@@ -546,7 +602,7 @@
             const threshold = parseInt(thresholdSlider.value);
             const now = Date.now();
 
-            if (volumePercent > threshold && video.paused && (now - lastTriggerTime > 1000)) {
+            if (volumePercent > threshold && video.paused && !isSyncPaused && (now - lastTriggerTime > 1000)) {
                 video.play();
                 lastTriggerTime = now;
                 micLevelBar.style.backgroundColor = 'var(--accent)';
