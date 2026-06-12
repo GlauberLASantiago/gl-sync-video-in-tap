@@ -51,6 +51,7 @@
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
             overflow: hidden;
             border: 1px solid var(--border-active);
+            margin: 1.5rem auto;
         }
 
         /* ── Header ── */
@@ -136,17 +137,32 @@
         /* ── Layout Grid ── */
         .main-layout {
             display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 0;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 1rem;
+            padding: 1rem;
         }
 
-        /* ── Video Side ── */
         .video-side {
-            padding: 0.8rem;
             display: flex;
             flex-direction: column;
-            gap: 0.7rem;
-            border-right: 1px solid var(--border);
+            gap: 1rem;
+        }
+
+        .controls-side {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+            max-height: calc(100vh - 100px);
+        }
+
+        .controls-side::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .controls-side::-webkit-scrollbar-thumb {
+            background: var(--border-active);
+            border-radius: 2px;
         }
 
         .video-wrapper {
@@ -229,16 +245,11 @@
             }
         }
 
-        /* ── Controls Side ── */
-        .controls-side {
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
         /* ── Accordion Section ── */
         .section {
-            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 6px;
             overflow: hidden;
         }
 
@@ -783,48 +794,34 @@
         }
 
         /* ── Responsive / Layout Modes ── */
-        .layout-vertical {
-            max-width: 360px;
-        }
-
-        .layout-vertical .main-layout {
-            grid-template-columns: 1fr;
-        }
-
-        .layout-vertical .video-side {
-            border-right: none;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .layout-vertical .brand-sub {
-            display: none;
-        }
-
-
 
         @media (max-width: 800px) {
             .main-layout {
-                grid-template-columns: 1fr !important;
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+                height: auto;
             }
 
-            .video-side {
-                border-right: none;
-                border-bottom: 1px solid var(--border);
+            .video-side,
+            .controls-side {
+                display: contents;
+                max-height: none;
+                overflow: visible;
             }
+
+            #sec-arquivo { order: 1; }
+            #sec-andamento { order: 2; }
+            #sec-bluetooth { order: 3; }
+            #sec-gatilho { order: 4; }
+            .video-container-wrapper { order: 5; }
+            #sec-frames { order: 6; }
+            .video-markers { order: 7; }
+            #sec-ajuda { order: 8; }
         }
 
-        .controls-side {
-            overflow-y: auto;
-            max-height: calc(100vh - 100px);
-        }
-
-        .controls-side::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .controls-side::-webkit-scrollbar-thumb {
-            background: var(--border-active);
-        }
+        /* Removed controls-side scrollbar styles */
 
         /* ── Simple Credits Block ── */
         .simple-footer {
@@ -872,6 +869,42 @@
             color: #fff;
             border-color: var(--primary);
         }
+
+        .shortcuts-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.8rem;
+            font-size: 0.72rem;
+        }
+        .shortcuts-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .shortcuts-table tr:last-child td {
+            border-bottom: none;
+        }
+        .shortcuts-table td:first-child {
+            font-weight: 600;
+            color: #e2e2e2;
+            width: 55%;
+        }
+        .shortcuts-table td:last-child {
+            text-align: right;
+        }
+        kbd {
+            background-color: #2a2a30;
+            border: 1px solid #555;
+            border-radius: 3px;
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 0 0 2px #18181b inset;
+            color: #eee;
+            display: inline-block;
+            font-family: 'Courier New', monospace;
+            font-size: 0.68rem;
+            font-weight: bold;
+            line-height: 1.4;
+            padding: 1px 4px;
+            white-space: nowrap;
+        }
     </style>
 </head>
 
@@ -884,7 +917,7 @@
                 <div class="brand-logo">GL</div>
                 <div>
                     <p class="brand-title"><span style="color:var(--accent)">GL</span> Sync-in-Tap</p>
-                    <p class="brand-sub">Sincronismo Otimizado de Partitura</p>
+                    <p class="brand-sub">Pontuador para Trilha sonora</p>
                 </div>
             </div>
             
@@ -893,41 +926,60 @@
                        style="background: rgba(0, 0, 0, 0.3); border: 1px dashed rgba(255, 255, 255, 0.15); color: #fff; font-size: 0.8rem; padding: 4px 10px; border-radius: 4px; text-align: center;" 
                        title="Nome do Projeto (MusicXML)">
             </div>
-            <div class="header-actions">
-                <div class="layout-selector">
-                    <button class="layout-btn active" id="btn-geral" onclick="changeLayout('geral')">Geral</button>
-                    <button class="layout-btn" id="btn-vertical" onclick="changeLayout('vertical')">Vertical</button>
-                </div>
-            </div>
+            <!-- Layout selector removed -->
         </header>
 
         <div class="main-layout">
-
             <div class="video-side">
-                <div class="video-wrapper">
-                    <video id="videoPlayer" controls></video>
-                    <div id="ytPlayerContainer" style="display: none;">
-                        <div id="ytPlayerPlaceholder"></div>
+                <!-- 6. Vídeo -->
+                <div class="video-container-wrapper" style="display: flex; flex-direction: column; gap: 0.6rem; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 6px; padding: 0.8rem;">
+                    <div class="video-wrapper">
+                        <video id="videoPlayer" controls></video>
+                        <div id="ytPlayerContainer" style="display: none;">
+                            <div id="ytPlayerPlaceholder"></div>
+                        </div>
+                        <div class="timecode-overlay" style="display: flex; flex-direction: column; align-items: flex-start;">
+                            <span id="displayTimecode">1|1|1</span>
+                            <span id="displayAbsTimecode" style="font-size: 0.7rem; opacity: 0.75; font-weight: normal; margin-top: 2px; letter-spacing: 0.5px;">00:00:00</span>
+                        </div>
                     </div>
-                    <div class="timecode-overlay" style="display: flex; flex-direction: column; align-items: flex-start;">
-                        <span id="displayTimecode">1|1|1</span>
-                        <span id="displayAbsTimecode" style="font-size: 0.7rem; opacity: 0.75; font-weight: normal; margin-top: 2px; letter-spacing: 0.5px;">00:00:00</span>
+
+                    <div class="video-status">
+                        <div class="status-pill" id="statusPill">
+                            <span class="dot"></span>
+                            <span id="statusText">Sem vídeo</span>
+                        </div>
+                        <div class="status-pill" id="micStatusPill" style="display:none;">
+                            <span class="dot"></span>
+                            <span id="micStatusText">Mic inativo</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="video-status">
-                    <div class="status-pill" id="statusPill">
-                        <span class="dot"></span>
-                        <span id="statusText">Sem vídeo</span>
+                <!-- 8. Ajuste por Frame -->
+                <div class="section" id="sec-frames">
+                    <div class="section-header" onclick="toggleSection('frames')">
+                        <div class="section-label">
+                            <span class="icon">⏱</span>
+                            Ajuste por Frame
+                        </div>
+                        <span class="section-chevron">▼</span>
                     </div>
-                    <div class="status-pill" id="micStatusPill" style="display:none;">
-                        <span class="dot"></span>
-                        <span id="micStatusText">Mic inativo</span>
+                    <div class="section-body">
+                        <div class="frame-controls">
+                            <button class="btn btn-outline" id="btnFrameBack">◀ Frame</button>
+                            <button class="btn btn-outline" id="btnFrameFwd">Frame ▶</button>
+                        </div>
+                        <div class="grid-3">
+                            <button class="btn btn-outline" onclick="jumpFrames(-10)">−10f</button>
+                            <button class="btn btn-outline" onclick="jumpFrames(-5)">−5f</button>
+                            <button class="btn btn-outline" onclick="jumpFrames(5)">+5f</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Marks Section Directly Below Video -->
-                <div class="video-markers" style="margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                <!-- 7. Marcas -->
+                <div class="video-markers" style="display: flex; flex-direction: column; gap: 0.6rem; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 6px; padding: 0.8rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
                         <label class="field-label" style="margin: 0; display: flex; align-items: center; gap: 4px;">
                             <span>🔖</span> Marcas
@@ -938,7 +990,6 @@
                         </div>
                     </div>
                     
-                    <!-- Audio trigger control for marks -->
                     <div style="display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.25); padding: 5px 8px; border-radius: 5px; border: 1px solid var(--border-active);">
                         <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Som das Marcas:</span>
                         <div class="layout-selector" style="margin-left: auto;">
@@ -948,7 +999,7 @@
                     </div>
 
                     <!-- Marcas Pontuais -->
-                    <div style="display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--border); border-radius: 6px; padding: 6px; background: rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--border); border-radius: 6px; padding: 6px; background: rgba(0, 0, 0, 0.15);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
                             <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">📍 Pontuais</span>
                             <span class="section-badge" id="markerBadgePunctual" style="display:none; background: var(--accent); margin-left: 4px;">0</span>
@@ -959,7 +1010,7 @@
                     </div>
 
                     <!-- Marcas Contínuas -->
-                    <div style="display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--border); border-radius: 6px; padding: 6px; background: rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--border); border-radius: 6px; padding: 6px; background: rgba(0, 0, 0, 0.15);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
                             <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">〰 Contínuas</span>
                             <span class="section-badge" id="markerBadgeContinuous" style="display:none; background: #c85a3c; margin-left: 4px;">0</span>
@@ -972,7 +1023,7 @@
             </div>
 
             <div class="controls-side">
-
+                <!-- 2. Arquivo -->
                 <div class="section section-open" id="sec-arquivo">
                     <div class="section-header" onclick="toggleSection('arquivo')">
                         <div class="section-label">
@@ -982,35 +1033,27 @@
                         <span class="section-chevron">▲</span>
                     </div>
                     <div class="section-body">
-                        <div class="grid-2">
-                            <div>
-                                <label class="field-label">Upload de Vídeo Local</label>
-                                <input type="file" id="videoUpload" accept="video/*">
-                            </div>
-                            <div>
-                                <label class="field-label">Ou Link do Vídeo (YouTube / MP4)</label>
-                                <div style="display: flex; gap: 4px;">
-                                    <input type="text" id="videoUrlInput" placeholder="URL do YouTube ou arquivo .mp4" style="font-size: 0.8rem; padding: 4px 6px; flex: 1;">
-                                    <button class="btn btn-sm" id="btnLoadVideoUrl" style="width: auto; padding: 4px 10px;">Abrir</button>
-                                </div>
-                            </div>
+                        <div>
+                            <label class="field-label">Upload de Vídeo Local</label>
+                            <input type="file" id="videoUpload" accept="video/*">
+                        </div>
+                        <div>
+                            <label class="field-label">Ou Link do Vídeo (YouTube / MP4)</label>
+                            <input type="text" id="videoUrlInput" placeholder="URL do YouTube ou arquivo .mp4" style="font-size: 0.8rem; padding: 4px 6px; margin-bottom: 6px;">
+                            <button class="btn btn-sm" id="btnLoadVideoUrl" style="width: 100%; padding: 4px 10px;">Abrir</button>
                         </div>
                         <div class="video-name-tag" id="videoNameTag">—</div>
-
-                        <div class="grid-2">
-                            <div>
-                                <label class="field-label">Importar MusicXML</label>
-                                <input type="file" id="xmlUpload" accept=".xml,.musicxml">
-                            </div>
-                            <div>
-                                <label class="field-label" style="opacity:0; display:block;">.</label>
-                                <button class="btn btn-outline" id="btnExportXml">📤 Exportar XML</button>
-                            </div>
+                        <div>
+                            <label class="field-label">Importar MusicXML</label>
+                            <input type="file" id="xmlUpload" accept=".xml,.musicxml">
                         </div>
-
+                        <div>
+                            <button class="btn btn-outline" id="btnExportXml" style="width: 100%;">📤 Exportar XML</button>
+                        </div>
                     </div>
                 </div>
 
+                <!-- 3. Andamento & Compasso -->
                 <div class="section section-open" id="sec-andamento">
                     <div class="section-header" onclick="toggleSection('andamento')">
                         <div class="section-label">
@@ -1046,39 +1089,7 @@
                     </div>
                 </div>
 
-                <div class="section" id="sec-gatilho">
-                    <div class="section-header" onclick="toggleSection('gatilho')">
-                        <div class="section-label">
-                            <span class="icon">🎙</span>
-                            Gatilho de Áudio
-                        </div>
-                        <span class="section-chevron">▼</span>
-                    </div>
-                    <div class="section-body">
-                        <div class="btn-row">
-                            <button class="btn" id="btnStartMic">Ligar Escuta</button>
-                            <button class="btn" id="btnToggleSync" style="display:none" onclick="toggleSyncPause()">Sincronização Ativa</button>
-                        </div>
-
-                        <div>
-                            <label class="field-label">Sensibilidade</label>
-                            <div class="mic-row" style="gap:8px; margin-top: 4px;">
-                                <span
-                                    style="font-size: 0.9rem; color: var(--text-muted); font-weight: bold; user-select: none;">+</span>
-                                <input type="range" id="thresholdSlider" min="1" max="100" value="40" style="flex:1">
-                                <span
-                                    style="font-size: 0.9rem; color: var(--text-muted); font-weight: bold; user-select: none;">−</span>
-                                <div class="mic-monitor" style="flex:1.8;">
-                                    <div class="mic-level" id="micLevel"></div>
-                                    <div class="mic-threshold-marker" id="micMarker" style="left:40%"></div>
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </div>
-                </div>
-
+                <!-- 4. Atraso -->
                 <div class="section" id="sec-bluetooth">
                     <div class="section-header" onclick="toggleSection('bluetooth')">
                         <div class="section-label">
@@ -1115,31 +1126,109 @@
                     </div>
                 </div>
 
-                <div class="section" id="sec-frames">
-                    <div class="section-header" onclick="toggleSection('frames')">
+                <!-- 5. Gatilho de áudio -->
+                <div class="section" id="sec-gatilho">
+                    <div class="section-header" onclick="toggleSection('gatilho')">
                         <div class="section-label">
-                            <span class="icon">⏱</span>
-                            Ajuste por Frame
+                            <span class="icon">🎙</span>
+                            Gatilho de Áudio
                         </div>
                         <span class="section-chevron">▼</span>
                     </div>
                     <div class="section-body">
-                        <div class="frame-controls">
-                            <button class="btn btn-outline" id="btnFrameBack">◀ Frame</button>
-                            <button class="btn btn-outline" id="btnFrameFwd">Frame ▶</button>
+                        <div class="btn-row">
+                            <button class="btn" id="btnStartMic">Ligar Escuta</button>
+                            <button class="btn" id="btnToggleSync" style="display:none" onclick="toggleSyncPause()">Sincronização Ativa</button>
                         </div>
-                        <div class="grid-3">
-                            <button class="btn btn-outline" onclick="jumpFrames(-10)">−10f</button>
-                            <button class="btn btn-outline" onclick="jumpFrames(-5)">−5f</button>
-                            <button class="btn btn-outline" onclick="jumpFrames(5)">+5f</button>
+
+                        <div>
+                            <label class="field-label">Sensibilidade</label>
+                            <div class="mic-row" style="gap:8px; margin-top: 4px;">
+                                <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: bold; user-select: none;">+</span>
+                                <input type="range" id="thresholdSlider" min="1" max="100" value="40" style="flex:1">
+                                <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: bold; user-select: none;">−</span>
+                                <div class="mic-monitor" style="flex:1.8;">
+                                    <div class="mic-level" id="micLevel"></div>
+                                    <div class="mic-threshold-marker" id="micMarker" style="left:40%"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- 9. Guia de uso -->
+                <div class="section" id="sec-ajuda">
+                    <div class="section-header" onclick="toggleSection('ajuda')">
+                        <div class="section-label">
+                            <span class="icon">📖</span>
+                            Guia de Uso & Atalhos
+                        </div>
+                        <span class="section-chevron">▼</span>
+                    </div>
+                    <div class="section-body" style="font-size: 0.72rem; line-height: 1.4; max-height: 280px; overflow-y: auto;">
+                        <p style="margin-top: 0; color: #bbb; text-align: justify; line-height: 1.45; margin-bottom: 0.8rem;">
+                            Este app foi criado para facilitar o trabalho de criação musical no MuseScore, pois este atualmente não tem a possibilidade de se carregar um vídeo e sincronizá-lo. A ideia é que o estudante de trilha sonora abra um arquivo do MuseScore e, quando ele clica no teclado, o GL Sync-in-Tap literalmente ouve o som e inicia o vídeo junto. Além disso, o app possui diversas funcionalidades, como de importar e exportar arquivos MusicXML que podem ser lidos pelo MuseScore, possibilitando diversas facilidades no processo de pontuar locais no vídeo para se fazer trilha sonora.
+                        </p>
+                        <p style="font-weight: bold; color: #fff; margin-top: 0.5rem; margin-bottom: 0.4rem;">Como usar:</p>
+                        <ol style="padding-left: 1rem; margin: 0 0 10px 0; color: #bbb;">
+                            <li style="margin-bottom: 5px;"><strong>Carregar Vídeo</strong>: Selecione um arquivo local ou use um link do YouTube ou URL direta no painel "Arquivo".</li>
+                            <li style="margin-bottom: 5px;"><strong>Marcar Sincronismo</strong>:
+                                <ul style="padding-left: 1rem; margin: 3px 0;">
+                                    <li>Use <strong>+ Pontual</strong> (Atalho: <kbd>M</kbd>) para batidas ou momentos únicos.</li>
+                                    <li>Use <strong>+ Contínua</strong> (Atalho: <kbd>C</kbd>) para trechos com duração (clique uma vez para iniciar e outra para parar).</li>
+                                </ul>
+                            </li>
+                            <li style="margin-bottom: 5px;"><strong>Som das Marcas</strong>: Reproduz cliques nas pontuais e notas musicais diatônicas sobrepostas (a partir de C4, E4, G4, Bb4) nas marcas contínuas.</li>
+                            <li style="margin-bottom: 5px;"><strong>Edição</strong>: Um clique simples na marca vai para o início dela (2º clique vai para o fim da contínua; 3º clique desmarca). Clique duplo permite editar o nome e a contagem musical.</li>
+                            <li style="margin-bottom: 5px;"><strong>Exportar</strong>: Baixe em formato MusicXML para abrir no MuseScore, organizando as marcas contínuas em pautas separadas ("Contínua 1" a "Contínua 4") de acordo com as notas atribuídas.</li>
+                        </ol>
 
-
-
-
+                        <p style="margin: 10px 0 5px 0; font-weight: bold; color: #fff;">Atalhos de Teclado:</p>
+                        <table class="shortcuts-table">
+                            <tr>
+                                <td>Play / Pause do Vídeo</td>
+                                <td><kbd>Espaço</kbd></td>
+                            </tr>
+                            <tr>
+                                <td>Criar Marca Pontual</td>
+                                <td><kbd>M</kbd></td>
+                            </tr>
+                            <tr>
+                                <td>Iniciar/Parar Contínua</td>
+                                <td><kbd>C</kbd></td>
+                            </tr>
+                            <tr>
+                                <td>Voltar 1 Frame</td>
+                                <td><kbd>◀ Seta Esquerda</kbd></td>
+                            </tr>
+                            <tr>
+                                <td>Avançar 1 Frame</td>
+                                <td><kbd>Seta Direita ▶</kbd></td>
+                            </tr>
+                            <tr>
+                                <td>Voltar 5 Frames</td>
+                                <td><kbd>Shift</kbd> + <kbd>◀</kbd></td>
+                            </tr>
+                            <tr>
+                                <td>Avançar 5 Frames</td>
+                                <td><kbd>Shift</kbd> + <kbd>▶</kbd></td>
+                            </tr>
+                            <tr>
+                                <td>Ativar/Pausar Sinc (Mic)</td>
+                                <td><kbd>S</kbd></td>
+                            </tr>
+                            <tr>
+                                <td>Marca Anterior</td>
+                                <td><kbd>[</kbd></td>
+                            </tr>
+                            <tr>
+                                <td>Próxima Marca</td>
+                                <td><kbd>]</kbd></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <footer class="simple-footer">
@@ -1147,7 +1236,6 @@
             <a href="http://servidores.ufscar.br/glauber/" target="_blank">servidores.ufscar.br/glauber/</a>
             <span>•</span>
             <a href="https://sites.google.com/view/glauberia" target="_blank">sites.google.com/view/glauberia</a>
-            <button class="btn-help-trigger" onclick="openHelpWindow()">📖 Guia de Uso & Atalhos</button>
         </footer>
     </div>
 
@@ -1208,12 +1296,7 @@
         }
 
         // ── Layout ──
-        function changeLayout(mode) {
-            wrapper.classList.remove('layout-geral', 'layout-vertical');
-            wrapper.classList.add('layout-' + mode);
-            document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + mode).classList.add('active');
-        }
+        // changeLayout function removed
 
         // ── Time Math ──
         function calculateMusicalTime(timeSeconds) {
@@ -2818,204 +2901,15 @@ ${partsXml}
             }
         });
 
-        // ── Open Help Window ──
-        function openHelpWindow() {
-            const width = 800;
-            const height = 900;
-            const left = (window.screen.width - width) / 2;
-            const top = (window.screen.height - height) / 2;
-            
-            const helpWin = window.open("", "GLSyncInTapHelp", `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`);
-            
-            helpWin.document.write(`
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guia de Uso & Atalhos - GL Sync-in-Tap</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: #121216;
-            color: #e2e2e2;
-            padding: 1.5rem;
-            margin: 0;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        h2 {
-            color: #ffffff;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 0.5rem;
-            margin-top: 2rem;
-        }
-        h2:first-of-type {
-            margin-top: 0;
-        }
-        h3 {
-            color: #BCDFB9;
-            font-size: 1rem;
-            margin-top: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        p, li {
-            font-size: 0.88rem;
-            color: #a0a0a5;
-        }
-        ol, ul {
-            padding-left: 1.2rem;
-            margin: 0.5rem 0;
-        }
-        li {
-            margin-bottom: 0.6rem;
-        }
-        strong {
-            color: #ffffff;
-        }
-        .shortcuts-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 0.8rem;
-            font-size: 0.85rem;
-        }
-        .shortcuts-table td {
-            padding: 8px 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .shortcuts-table tr:last-child td {
-            border-bottom: none;
-        }
-        .shortcuts-table td:first-child {
-            font-weight: 600;
-            color: #e2e2e2;
-            width: 50%;
-        }
-        .shortcuts-table td:last-child {
-            text-align: right;
-        }
-        kbd {
-            background-color: #2a2a30;
-            border: 1px solid #555;
-            border-radius: 3px;
-            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 0 0 2px #18181b inset;
-            color: #eee;
-            display: inline-block;
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            font-weight: bold;
-            line-height: 1.4;
-            padding: 2px 6px;
-            white-space: nowrap;
-        }
-        .btn-close {
-            display: block;
-            width: 100%;
-            background: #2d8a4e;
-            color: white;
-            border: none;
-            padding: 0.6rem;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.9rem;
-            text-align: center;
-            margin-top: 2.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            transition: background 0.15s;
-        }
-        .btn-close:hover {
-            background: #369c5c;
-        }
-        .footer-credits {
-            text-align: center;
-            margin-top: 2rem;
-            padding-top: 1rem;
-            border-top: 1px dashed rgba(255, 255, 255, 0.1);
-            font-size: 0.75rem;
-            color: #888;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>📖 Guia de Uso — GL Sync-in-Tap</h2>
-        
-        <ol>
-            <li><strong>Carregar Vídeo</strong>: Selecione um arquivo de vídeo na seção "Arquivo" para começar.</li>
-            <li><strong>Marcar Sincronismo</strong>:
-                <ul>
-                    <li>Use o botão <strong>+ Pontual</strong> (Atalho <kbd>M</kbd>) para registrar batidas/instantes únicos.</li>
-                    <li>Use o botão <strong>+ Contínua</strong> (Atalho <kbd>C</kbd>) para registrar trechos de longa duração (clique uma vez para iniciar o trecho e clique novamente para parar).</li>
-                </ul>
-            </li>
-            <li><strong>Som das Marcas</strong>: Ative os efeitos sonoros para ouvir um clique nas marcas pontuais e um som longo (com fade-in de 1s e 2s totais) no início de marcas contínuas.</li>
-            <li><strong>Edição Fina</strong>: Dê um clique simples em qualquer marca na lista para selecioná-la e navegar até seu tempo no vídeo. Use cliques duplos nas marcas para edição manual do compasso e do nome. Use o ajuste por frame no teclado para deslocar os pontos selecionados com alta precisão.</li>
-            <li><strong>Importar e Exportar</strong>: Salve o progresso exportando em formato MusicXML com divisão em duas pautas (P1 para Pontuais, P2 para Contínuas), compatível com softwares de partitura.</li>
-        </ol>
-
-        <h2>⌨️ Atalhos de Teclado</h2>
-        <table class="shortcuts-table">
-            <tr>
-                <td>Play / Pause do Vídeo</td>
-                <td><kbd>Espaço (Space)</kbd></td>
-            </tr>
-            <tr>
-                <td>Criar Marca Pontual</td>
-                <td><kbd>M</kbd></td>
-            </tr>
-            <tr>
-                <td>Iniciar/Parar Marca Contínua</td>
-                <td><kbd>C</kbd></td>
-            </tr>
-            <tr>
-                <td>Voltar 1 Frame</td>
-                <td><kbd>◀ Seta Esquerda</kbd></td>
-            </tr>
-            <tr>
-                <td>Avançar 1 Frame</td>
-                <td><kbd>Seta Direita ▶</kbd></td>
-            </tr>
-            <tr>
-                <td>Voltar 5 Frames</td>
-                <td><kbd>Shift</kbd> + <kbd>◀ Seta Esquerda</kbd></td>
-            </tr>
-            <tr>
-                <td>Avançar 5 Frames</td>
-                <td><kbd>Shift</kbd> + <kbd>Seta Direita ▶</kbd></td>
-            </tr>
-            <tr>
-                <td>Ativar/Pausar Sincronismo (Mic)</td>
-                <td><kbd>S</kbd></td>
-            </tr>
-            <tr>
-                <td>Ir para Marca Anterior</td>
-                <td><kbd>[</kbd></td>
-            </tr>
-            <tr>
-                <td>Ir para Próxima Marca</td>
-                <td><kbd>]</kbd></td>
-            </tr>
-        </table>
-
-        <button class="btn-close" onclick="window.close()">Fechar Guia</button>
-
-        <div class="footer-credits">
-            Desenvolvido pelo professor Glauber Santiago — DAC/UFSCar
-        </div>
-    </div>
-</body>
-</html>
-            `);
-            helpWin.document.close();
+        // ── Open Help Accordion ──
+        function toggleHelpSection() {
+            const sec = document.getElementById('sec-ajuda');
+            if (sec) {
+                if (!sec.classList.contains('section-open')) {
+                    toggleSection('ajuda');
+                }
+                sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
     </script>
 </body>
