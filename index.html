@@ -158,10 +158,11 @@
             border: 1px solid var(--border);
         }
 
-        video {
+        video, #ytPlayerContainer, #ytPlayerContainer iframe {
             width: 100%;
             height: 100%;
             display: block;
+            border: none;
         }
 
         .timecode-overlay {
@@ -905,6 +906,9 @@
             <div class="video-side">
                 <div class="video-wrapper">
                     <video id="videoPlayer" controls></video>
+                    <div id="ytPlayerContainer" style="display: none;">
+                        <div id="ytPlayerPlaceholder"></div>
+                    </div>
                     <div class="timecode-overlay" style="display: flex; flex-direction: column; align-items: flex-start;">
                         <span id="displayTimecode">1|1|1</span>
                         <span id="displayAbsTimecode" style="font-size: 0.7rem; opacity: 0.75; font-weight: normal; margin-top: 2px; letter-spacing: 0.5px;">00:00:00</span>
@@ -978,9 +982,18 @@
                         <span class="section-chevron">▲</span>
                     </div>
                     <div class="section-body">
-                        <div>
-                            <label class="field-label">Vídeo</label>
-                            <input type="file" id="videoUpload" accept="video/*">
+                        <div class="grid-2">
+                            <div>
+                                <label class="field-label">Upload de Vídeo Local</label>
+                                <input type="file" id="videoUpload" accept="video/*">
+                            </div>
+                            <div>
+                                <label class="field-label">Ou Link do Vídeo (YouTube / MP4)</label>
+                                <div style="display: flex; gap: 4px;">
+                                    <input type="text" id="videoUrlInput" placeholder="URL do YouTube ou arquivo .mp4" style="font-size: 0.8rem; padding: 4px 6px; flex: 1;">
+                                    <button class="btn btn-sm" id="btnLoadVideoUrl" style="width: auto; padding: 4px 10px;">Abrir</button>
+                                </div>
+                            </div>
                         </div>
                         <div class="video-name-tag" id="videoNameTag">—</div>
 
@@ -1171,6 +1184,8 @@
         const micStatusText = document.getElementById('micStatusText');
         const markerBadgePunctual = document.getElementById('markerBadgePunctual');
         const markerBadgeContinuous = document.getElementById('markerBadgeContinuous');
+        const videoUrlInput = document.getElementById('videoUrlInput');
+        const btnLoadVideoUrl = document.getElementById('btnLoadVideoUrl');
 
 
         let currentVideoName = "";
@@ -1264,9 +1279,214 @@
             document.addEventListener(evt, initSoundAudioCtx, { once: true });
         });
 
+        let ytApiLoaded = false;
+        let ytCallbacks = [];
+
+        window.onYouTubeIframeAPIReady = () => {
+            ytApiLoaded = true;
+            ytCallbacks.forEach(cb => cb());
+            ytCallbacks = [];
+        };
+
+        function loadYoutubeAPI(callback) {
+            if (ytApiLoaded) {
+                if (callback) callback();
+                return;
+            }
+            ytCallbacks.push(callback);
+            if (document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+                return;
+            }
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+
+        // ── Unified Player Wrapper (Native Video + YouTube) ──
+        const appPlayer = {
+            type: 'native', // 'native' or 'youtube'
+            ytPlayer: null,
+            listeners: {
+                play: [],
+                pause: [],
+                seeking: [],
+                seeked: [],
+                ended: []
+            },
+            addEventListener(event, callback) {
+                if (this.listeners[event]) {
+                    this.listeners[event].push(callback);
+                }
+            },
+            trigger(event, ...args) {
+                if (this.listeners[event]) {
+                    this.listeners[event].forEach(cb => {
+                        try { cb(...args); } catch (e) { console.error(e); }
+                    });
+                }
+            },
+            get currentTime() {
+                if (this.type === 'youtube' && this.ytPlayer && typeof this.ytPlayer.getCurrentTime === 'function') {
+                    return this.ytPlayer.getCurrentTime();
+                }
+                return video.currentTime;
+            },
+            set currentTime(val) {
+                if (this.type === 'youtube' && this.ytPlayer && typeof this.ytPlayer.seekTo === 'function') {
+                    this.ytPlayer.seekTo(val, true);
+                    this.trigger('seeking');
+                    setTimeout(() => this.trigger('seeked'), 150);
+                } else {
+                    video.currentTime = val;
+                }
+            },
+            get duration() {
+                if (this.type === 'youtube' && this.ytPlayer && typeof this.ytPlayer.getDuration === 'function') {
+                    return this.ytPlayer.getDuration();
+                }
+                return video.duration || 0;
+            },
+            get paused() {
+                if (this.type === 'youtube' && this.ytPlayer && typeof this.ytPlayer.getPlayerState === 'function') {
+                    const state = this.ytPlayer.getPlayerState();
+                    return state !== 1; // 1 is playing
+                }
+                return video.paused;
+            },
+            get playbackRate() {
+                if (this.type === 'youtube' && this.ytPlayer && typeof this.ytPlayer.getPlaybackRate === 'function') {
+                    return this.ytPlayer.getPlaybackRate();
+                }
+                return video.playbackRate || 1;
+            },
+            set playbackRate(val) {
+                if (this.type === 'youtube' && this.ytPlayer && typeof this.ytPlayer.setPlaybackRate === 'function') {
+                    this.ytPlayer.setPlaybackRate(val);
+                } else {
+                    video.playbackRate = val;
+                }
+            },
+            play() {
+                if (this.type === 'youtube' && this.ytPlayer && typeof this.ytPlayer.playVideo === 'function') {
+                    this.ytPlayer.playVideo();
+                } else {
+                    video.play();
+                }
+            },
+            pause() {
+                if (this.type === 'youtube' && this.ytPlayer && typeof this.ytPlayer.pauseVideo === 'function') {
+                    this.ytPlayer.pauseVideo();
+                } else {
+                    video.pause();
+                }
+            }
+        };
+
+        // Route native video events to appPlayer
+        ['play', 'pause', 'seeking', 'seeked', 'ended'].forEach(event => {
+            video.addEventListener(event, (e) => {
+                if (appPlayer.type === 'native') {
+                    appPlayer.trigger(event, e);
+                }
+            });
+        });
+
+        function destroyYoutubePlayer() {
+            if (appPlayer.ytPlayer) {
+                try {
+                    appPlayer.ytPlayer.destroy();
+                } catch (e) {
+                    console.error(e);
+                }
+                appPlayer.ytPlayer = null;
+            }
+            const container = document.getElementById('ytPlayerContainer');
+            container.innerHTML = '<div id="ytPlayerPlaceholder"></div>';
+        }
+
+        function getYoutubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            if (match && match[2].length === 11) {
+                return match[2];
+            }
+            if (url.length === 11 && !url.includes('/') && !url.includes('.')) {
+                return url;
+            }
+            return null;
+        }
+
+        function loadYoutubeVideo(videoId) {
+            document.getElementById('videoPlayer').style.display = 'none';
+            const container = document.getElementById('ytPlayerContainer');
+            container.style.display = 'block';
+            
+            appPlayer.type = 'youtube';
+            
+            video.pause();
+            video.src = '';
+            
+            destroyYoutubePlayer();
+            
+            loadYoutubeAPI(() => {
+                appPlayer.ytPlayer = new YT.Player('ytPlayerPlaceholder', {
+                    videoId: videoId,
+                    playerVars: {
+                        'autoplay': 0,
+                        'controls': 1,
+                        'rel': 0,
+                        'showinfo': 0,
+                        'modestbranding': 1,
+                        'origin': window.location.origin
+                    },
+                    events: {
+                        'onReady': (event) => {
+                            appPlayer.trigger('seeked');
+                        },
+                        'onStateChange': (event) => {
+                            const state = event.data;
+                            if (state === YT.PlayerState.PLAYING) {
+                                appPlayer.trigger('play');
+                            } else if (state === YT.PlayerState.PAUSED) {
+                                appPlayer.trigger('pause');
+                            } else if (state === YT.PlayerState.ENDED) {
+                                appPlayer.trigger('ended');
+                            } else if (state === YT.PlayerState.BUFFERING) {
+                                appPlayer.trigger('seeking');
+                            }
+                        }
+                    }
+                });
+            });
+            
+            currentVideoName = `YouTube: ${videoId}`;
+            videoNameTag.style.display = 'block';
+            videoNameTag.textContent = '📺 ' + currentVideoName;
+            statusPill.classList.add('active');
+            statusText.textContent = `YouTube: ${videoId}`;
+            projectNameInput.value = `YouTube_${videoId}`;
+        }
+
+        function loadNativeVideo(url, name) {
+            destroyYoutubePlayer();
+            document.getElementById('ytPlayerContainer').style.display = 'none';
+            video.style.display = 'block';
+            appPlayer.type = 'native';
+            
+            video.src = url;
+            currentVideoName = name;
+            videoNameTag.style.display = 'block';
+            videoNameTag.textContent = '📼 ' + currentVideoName;
+            statusPill.classList.add('active');
+            statusText.textContent = currentVideoName.replace(/\.[^.]+$/, '');
+            projectNameInput.value = currentVideoName.replace(/\.[^.]+$/, '');
+        }
+
         function setupVideoAudioDelay() {
             initSoundAudioCtx();
             if (!soundAudioCtx) return;
+            if (appPlayer.type === 'youtube') return; // Cannot route YouTube audio
             if (!videoAudioSource) {
                 try {
                     videoAudioSource = soundAudioCtx.createMediaElementSource(video);
@@ -1318,7 +1538,7 @@
                 osc.start();
                 osc.stop(soundAudioCtx.currentTime + 0.08);
             } else if (marker.type === 'continuo') {
-                const playbackRate = video.playbackRate || 1;
+                const playbackRate = appPlayer.playbackRate || 1;
                 const duration = ((marker.timeEnd || marker.time + 2) - marker.time) / playbackRate;
                 const fadeInTime = Math.min(0.1, duration * 0.1);
                 const fadeOutTime = Math.min(0.25, duration * 0.2);
@@ -1360,7 +1580,7 @@
         window.setMarkerAudio = setMarkerAudio;
 
         // Also resume AudioContext and setup video routing when video starts playing
-        video.addEventListener('play', () => {
+        appPlayer.addEventListener('play', () => {
             initSoundAudioCtx();
             if (soundAudioCtx && soundAudioCtx.state === 'suspended') {
                 soundAudioCtx.resume();
@@ -1368,20 +1588,20 @@
             setupVideoAudioDelay();
         });
 
-        video.addEventListener('pause', stopAllActiveSounds);
-        video.addEventListener('seeking', stopAllActiveSounds);
-        video.addEventListener('ended', stopAllActiveSounds);
+        appPlayer.addEventListener('pause', stopAllActiveSounds);
+        appPlayer.addEventListener('seeking', stopAllActiveSounds);
+        appPlayer.addEventListener('ended', stopAllActiveSounds);
 
-        video.addEventListener('seeked', () => {
+        appPlayer.addEventListener('seeked', () => {
             // Set lastVideoTime slightly before currentTime to catch markers exactly at the seek target
-            lastVideoTime = video.currentTime - 0.001;
+            lastVideoTime = appPlayer.currentTime - 0.001;
         });
 
         let wasPaused = true;
 
         function updateVisuals() {
-            const currTime = video.currentTime;
-            const isPaused = video.paused;
+            const currTime = appPlayer.currentTime;
+            const isPaused = appPlayer.paused;
             
             if (markerAudioEnabled && !isPaused) {
                 let effectiveLastTime = lastVideoTime;
@@ -1410,21 +1630,28 @@
         videoUpload.addEventListener('change', function () {
             const file = this.files[0];
             if (!file) return;
-            video.src = URL.createObjectURL(file);
-            currentVideoName = file.name;
-            videoNameTag.style.display = 'block';
-            videoNameTag.textContent = '📼 ' + currentVideoName;
-            statusPill.classList.add('active');
-            statusText.textContent = currentVideoName.replace(/\.[^.]+$/, '');
-            projectNameInput.value = currentVideoName.replace(/\.[^.]+$/, '');
+            loadNativeVideo(URL.createObjectURL(file), file.name);
+        });
+
+        // ── Link Video Load ──
+        btnLoadVideoUrl.addEventListener('click', () => {
+            const url = videoUrlInput.value.trim();
+            if (!url) return;
+            const ytId = getYoutubeId(url);
+            if (ytId) {
+                loadYoutubeVideo(ytId);
+            } else {
+                const name = url.substring(url.lastIndexOf('/') + 1) || 'video_link';
+                loadNativeVideo(url, name);
+            }
         });
 
         // ── Frame Navigation ──
         function jumpFrames(n) {
-            if (!video.paused) video.pause();
-            const oldTime = video.currentTime;
-            const newTime = Math.max(0, Math.min(video.duration || 0, oldTime + n / FPS));
-            video.currentTime = newTime;
+            if (!appPlayer.paused) appPlayer.pause();
+            const oldTime = appPlayer.currentTime;
+            const newTime = Math.max(0, Math.min(appPlayer.duration || 0, oldTime + n / FPS));
+            appPlayer.currentTime = newTime;
 
             if (selectedMarkerId !== null) {
                 const marker = markers.find(m => m.id === selectedMarkerId);
@@ -1566,7 +1793,7 @@
         // ── Markers ──
         btnAddMarker.addEventListener('click', () => {
             const nextNum = markers.filter(x => x.type === 'pontual').length + 1;
-            let markerTime = video.currentTime;
+            let markerTime = appPlayer.currentTime;
             if (btCompensateEnabled) {
                 markerTime = Math.max(0, markerTime - (btDelay / 1000));
             }
@@ -1586,7 +1813,7 @@
         function toggleContinuousMarker() {
             if (tempContinuousStart === null) {
                 // Start recording
-                tempContinuousStart = video.currentTime;
+                tempContinuousStart = appPlayer.currentTime;
                 const nextNum = markers.filter(m => m.type === 'continuo').length + 1;
                 const defaultLabel = `C${nextNum}`;
                 btnContinuousMarker.textContent = `■ Parar Contínua (${defaultLabel})`;
@@ -1595,7 +1822,7 @@
             } else {
                 // Stop recording
                 let start = tempContinuousStart;
-                let end = video.currentTime;
+                let end = appPlayer.currentTime;
                 tempContinuousStart = null;
                 btnContinuousMarker.textContent = '+ Contínua';
                 btnContinuousMarker.style.background = '#c85a3c'; // terracotta
@@ -1745,7 +1972,7 @@
                     } else {
                         const stage = item.dataset.clickStage || "start";
                         if (stage === "start") {
-                            video.currentTime = marker.timeEnd;
+                            appPlayer.currentTime = marker.timeEnd;
                             item.dataset.clickStage = "end";
                         } else {
                             selectedMarkerId = null;
@@ -1755,7 +1982,7 @@
                     }
                 } else {
                     selectedMarkerId = marker.id;
-                    video.currentTime = marker.time;
+                    appPlayer.currentTime = marker.time;
                     document.querySelectorAll('.marker-item').forEach(el => {
                         el.classList.remove('selected');
                         delete el.dataset.clickStage;
@@ -1947,7 +2174,7 @@
                 lastMarkerMeasure = Math.max(lastMarkerMeasure, measure);
             });
             
-            const videoDuration = video.duration || 0;
+            const videoDuration = appPlayer.duration || 0;
             const secondsPerMeasure = secondsPerBeat * beats;
             const estimatedMeasures = videoDuration > 0 ? Math.ceil(videoDuration / secondsPerMeasure) : 1;
             const numMeasures = Math.max(estimatedMeasures, lastMarkerMeasure);
@@ -2497,8 +2724,8 @@ ${partsXml}
             let volumePercent = (sum / dataArray.length / 255) * 250;
             micLevelBar.style.width = `${Math.min(100, volumePercent)}%`;
             const now = Date.now();
-            if (volumePercent > parseInt(thresholdSlider.value) && video.paused && !isSyncPaused && (now - lastTriggerTime > 1000)) {
-                video.play();
+            if (volumePercent > parseInt(thresholdSlider.value) && appPlayer.paused && !isSyncPaused && (now - lastTriggerTime > 1000)) {
+                appPlayer.play();
                 lastTriggerTime = now;
                 micLevelBar.style.backgroundColor = 'var(--accent)';
                 setTimeout(() => micLevelBar.style.backgroundColor = 'var(--primary)', 300);
@@ -2509,7 +2736,7 @@ ${partsXml}
         // ── Keyboard Shortcuts ──
         function gotoPreviousMarker() {
             if (markers.length === 0) return;
-            const prevMarkers = markers.filter(m => m.time < video.currentTime - 0.1);
+            const prevMarkers = markers.filter(m => m.time < appPlayer.currentTime - 0.1);
             let targetMarker;
             if (prevMarkers.length > 0) {
                 targetMarker = prevMarkers[prevMarkers.length - 1];
@@ -2518,14 +2745,14 @@ ${partsXml}
             }
             if (targetMarker) {
                 selectedMarkerId = targetMarker.id;
-                video.currentTime = targetMarker.time;
+                appPlayer.currentTime = targetMarker.time;
                 renderMarkers();
             }
         }
 
         function gotoNextMarker() {
             if (markers.length === 0) return;
-            const nextMarker = markers.find(m => m.time > video.currentTime + 0.1);
+            const nextMarker = markers.find(m => m.time > appPlayer.currentTime + 0.1);
             let targetMarker;
             if (nextMarker) {
                 targetMarker = nextMarker;
@@ -2534,7 +2761,7 @@ ${partsXml}
             }
             if (targetMarker) {
                 selectedMarkerId = targetMarker.id;
-                video.currentTime = targetMarker.time;
+                appPlayer.currentTime = targetMarker.time;
                 renderMarkers();
             }
         }
@@ -2550,10 +2777,10 @@ ${partsXml}
 
             if (key === ' ') {
                 e.preventDefault();
-                if (video.paused) {
-                    video.play();
+                if (appPlayer.paused) {
+                    appPlayer.play();
                 } else {
-                    video.pause();
+                    appPlayer.pause();
                 }
             } else if (key.toLowerCase() === 'm') {
                 e.preventDefault();
