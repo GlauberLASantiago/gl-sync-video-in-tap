@@ -693,6 +693,12 @@
             border-radius: 0 !important;
         }
 
+        .marker-input[readonly] {
+            caret-color: transparent;
+            cursor: pointer;
+            user-select: none;
+        }
+
         .marker-time-input {
             color: var(--primary) !important;
             font-weight: bold;
@@ -1890,7 +1896,7 @@
             };
             markers.push(newMarker);
             markers.sort((a, b) => a.time - b.time);
-            selectedMarkerId = null; // Do not automatically select
+            selectedMarkerId = null; 
             renderMarkers();
         });
 
@@ -2023,21 +2029,6 @@
             const labelInput = item.querySelector('.marker-label-input');
             const timeEndInput = item.querySelector('.marker-time-end-input'); // null for punctual
             const delBtn = item.querySelector('.btn-delete-marker');
-
-            // Prevent focus caret and keyboard on single click if readonly
-            const preventFocusIfReadonly = (e) => {
-                if (e.target.hasAttribute('readonly')) {
-                    e.preventDefault();
-                }
-            };
-            timeInput.addEventListener('mousedown', preventFocusIfReadonly);
-            labelInput.addEventListener('mousedown', preventFocusIfReadonly);
-            timeInput.addEventListener('touchstart', preventFocusIfReadonly);
-            labelInput.addEventListener('touchstart', preventFocusIfReadonly);
-            if (timeEndInput) {
-                timeEndInput.addEventListener('mousedown', preventFocusIfReadonly);
-                timeEndInput.addEventListener('touchstart', preventFocusIfReadonly);
-            }
 
             // Delete button handler
             delBtn.addEventListener('click', (e) => {
