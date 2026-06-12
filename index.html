@@ -1066,6 +1066,42 @@
                     </div>
                 </div>
 
+                <div class="section" id="sec-bluetooth">
+                    <div class="section-header" onclick="toggleSection('bluetooth')">
+                        <div class="section-label">
+                            <span class="icon">🎧</span>
+                            Atraso do Bluetooth (Sincronia A/V)
+                        </div>
+                        <span class="section-chevron">▼</span>
+                    </div>
+                    <div class="section-body">
+                        <p style="font-size: 0.7rem; color: var(--text-muted); margin: 0 0 6px 0; line-height: 1.3;">
+                            Ajusta o sincronismo atrasando o áudio (vídeo e cliques) e compensando os elementos visuais (timecode do app) em tempo real.
+                        </p>
+                        <div>
+                            <label class="field-label">Atraso do Áudio (ms)</label>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="range" id="btDelaySlider" min="0" max="600" step="10" value="0" style="flex: 1;">
+                                <input type="number" id="btDelayInput" value="0" min="0" max="1000" style="width: 70px; text-align: center; padding: 0.3rem;">
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">ms</span>
+                            </div>
+                        </div>
+
+                        <!-- Toggle to compensate on tap -->
+                        <div class="sync-toggle" id="btnToggleBtCompensate" onclick="toggleBtCompensate()">
+                            <span class="sync-toggle-label" style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase;">Ativar Sincronização A/V</span>
+                            <div class="toggle-switch" id="btCompensateSwitch">
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </div>
+
+                        <div class="btn-row">
+                            <button class="btn btn-outline btn-sm" id="btnApplyBtToExisting" onclick="applyBtDelayToExisting()" title="Subtrai o atraso de todas as marcas existentes para fins de exportação">Ajustar marcas existentes (-offset)</button>
+                            <button class="btn btn-outline btn-sm" id="btnRemoveBtFromExisting" onclick="removeBtDelayFromExisting()" title="Adiciona o atraso de volta a todas as marcas existentes">Desfazer ajuste (+offset)</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="section" id="sec-frames">
                     <div class="section-header" onclick="toggleSection('frames')">
                         <div class="section-label">
@@ -1204,10 +1240,19 @@
         let lastVideoTime = 0;
         let markerAudioEnabled = false;
         let soundAudioCtx = null;
+        let activeOscillators = [];
+        let audioDelayNode = null;
+        let videoAudioSource = null;
 
         function initSoundAudioCtx() {
             if (!soundAudioCtx) {
                 soundAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Global delay node for both video audio and marker sounds
+                audioDelayNode = soundAudioCtx.createDelay(2.0);
+                const targetDelay = (btCompensateEnabled && btDelay > 0) ? (btDelay / 1000) : 0;
+                audioDelayNode.delayTime.value = targetDelay;
+                audioDelayNode.connect(soundAudioCtx.destination);
             }
             if (soundAudioCtx.state === 'suspended') {
                 soundAudioCtx.resume();
@@ -1219,30 +1264,86 @@
             document.addEventListener(evt, initSoundAudioCtx, { once: true });
         });
 
-        function playMarkerSound(type) {
+        function setupVideoAudioDelay() {
+            initSoundAudioCtx();
+            if (!soundAudioCtx) return;
+            if (!videoAudioSource) {
+                try {
+                    videoAudioSource = soundAudioCtx.createMediaElementSource(video);
+                    videoAudioSource.connect(audioDelayNode);
+                } catch (e) {
+                    console.error("Erro ao rotear áudio do vídeo:", e);
+                }
+            }
+        }
+
+        function updateAudioDelay() {
+            if (audioDelayNode && soundAudioCtx) {
+                const targetDelay = (btCompensateEnabled && btDelay > 0) ? (btDelay / 1000) : 0;
+                audioDelayNode.delayTime.setValueAtTime(targetDelay, soundAudioCtx.currentTime);
+            }
+        }
+
+        function stopAllActiveSounds() {
+            if (!soundAudioCtx) return;
+            activeOscillators.forEach(obj => {
+                try {
+                    obj.gainNode.gain.cancelScheduledValues(soundAudioCtx.currentTime);
+                    obj.gainNode.gain.setValueAtTime(obj.gainNode.gain.value || 0, soundAudioCtx.currentTime);
+                    obj.gainNode.gain.linearRampToValueAtTime(0, soundAudioCtx.currentTime + 0.05);
+                    obj.osc.stop(soundAudioCtx.currentTime + 0.06);
+                } catch (e) {
+                    // already stopped
+                }
+            });
+            activeOscillators = [];
+        }
+
+        function playMarkerSound(marker) {
             initSoundAudioCtx();
             if (!soundAudioCtx) return;
             
             const osc = soundAudioCtx.createOscillator();
             const gainNode = soundAudioCtx.createGain();
             osc.connect(gainNode);
-            gainNode.connect(soundAudioCtx.destination);
             
-            if (type === 'pontual') {
+            // Connect to the common delay node so clicks and video audio stay synchronized
+            gainNode.connect(audioDelayNode);
+            
+            if (marker.type === 'pontual') {
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(800, soundAudioCtx.currentTime);
                 gainNode.gain.setValueAtTime(0.8, soundAudioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.001, soundAudioCtx.currentTime + 0.08);
                 osc.start();
                 osc.stop(soundAudioCtx.currentTime + 0.08);
-            } else if (type === 'continuo') {
+            } else if (marker.type === 'continuo') {
+                const playbackRate = video.playbackRate || 1;
+                const duration = ((marker.timeEnd || marker.time + 2) - marker.time) / playbackRate;
+                const fadeInTime = Math.min(0.1, duration * 0.1);
+                const fadeOutTime = Math.min(0.25, duration * 0.2);
+                
+                // Find index of this continuous marker to play the corresponding diatonic frequency
+                const continuousMarkers = markers.filter(m => m.type === 'continuo').sort((a, b) => a.time - b.time);
+                const cmIndex = continuousMarkers.findIndex(m => m.id === marker.id);
+                const noteInfo = getDiatonicNote(cmIndex >= 0 ? cmIndex : 0);
+
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(440, soundAudioCtx.currentTime); // A4
+                osc.frequency.setValueAtTime(noteInfo.freq, soundAudioCtx.currentTime);
+                
                 gainNode.gain.setValueAtTime(0, soundAudioCtx.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0.4, soundAudioCtx.currentTime + 1.0); // 1s fade-in
-                gainNode.gain.linearRampToValueAtTime(0, soundAudioCtx.currentTime + 2.0); // total 2s duration (fades out from 1s to 2s)
+                gainNode.gain.linearRampToValueAtTime(0.4, soundAudioCtx.currentTime + fadeInTime);
+                gainNode.gain.setValueAtTime(0.4, soundAudioCtx.currentTime + duration - fadeOutTime);
+                gainNode.gain.linearRampToValueAtTime(0.001, soundAudioCtx.currentTime + duration);
+                
                 osc.start();
-                osc.stop(soundAudioCtx.currentTime + 2.0);
+                osc.stop(soundAudioCtx.currentTime + duration);
+
+                const soundObj = { osc, gainNode, markerId: marker.id };
+                activeOscillators.push(soundObj);
+                osc.onended = () => {
+                    activeOscillators = activeOscillators.filter(o => o !== soundObj);
+                };
             }
         }
 
@@ -1253,17 +1354,23 @@
             initSoundAudioCtx();
             if (enabled) {
                 // Play quick preview (short click)
-                playMarkerSound('pontual');
+                playMarkerSound({ type: 'pontual' });
             }
         }
         window.setMarkerAudio = setMarkerAudio;
 
-        // Also resume AudioContext when video starts playing
+        // Also resume AudioContext and setup video routing when video starts playing
         video.addEventListener('play', () => {
+            initSoundAudioCtx();
             if (soundAudioCtx && soundAudioCtx.state === 'suspended') {
                 soundAudioCtx.resume();
             }
+            setupVideoAudioDelay();
         });
+
+        video.addEventListener('pause', stopAllActiveSounds);
+        video.addEventListener('seeking', stopAllActiveSounds);
+        video.addEventListener('ended', stopAllActiveSounds);
 
         video.addEventListener('seeked', () => {
             // Set lastVideoTime slightly before currentTime to catch markers exactly at the seek target
@@ -1285,7 +1392,7 @@
                 if (currTime > effectiveLastTime && (currTime - effectiveLastTime < 0.5)) {
                     markers.forEach(m => {
                         if (effectiveLastTime < m.time && currTime >= m.time) {
-                            playMarkerSound(m.type);
+                            playMarkerSound(m);
                         }
                     });
                 }
@@ -1349,13 +1456,124 @@
         beatsInput.addEventListener('change', renderMarkers);
         beatUnitInput.addEventListener('change', renderMarkers);
 
+        // ── Diatonic Scale Mapping for Continuous Markers ──
+        const DIATONIC_SCALE = [
+            { step: 'C', octave: 4, freq: 261.63 }, // C4
+            { step: 'E', octave: 4, freq: 329.63 }, // E4
+            { step: 'G', octave: 4, freq: 392.00 }, // G4
+            { step: 'B', octave: 4, freq: 466.16, alter: -1 } // Bb4
+        ];
+
+        function getDiatonicNote(index) {
+            if (index < 0) index = 0;
+            return DIATONIC_SCALE[index % DIATONIC_SCALE.length];
+        }
+        window.getDiatonicNote = getDiatonicNote;
+
+        // Greedy voice/staff allocation based on overlap of continuous markers
+        function assignVoicesToContinuousMarkers(continuousMarkers) {
+            // Sort by start time chronologically
+            continuousMarkers.sort((a, b) => a.time - b.time);
+            
+            // Clear current voice assignments
+            continuousMarkers.forEach(cm => cm.voice = 0);
+            
+            // Greedily assign voices based on active overlaps
+            for (let i = 0; i < continuousMarkers.length; i++) {
+                const current = continuousMarkers[i];
+                const takenVoices = new Set();
+                
+                for (let j = 0; j < i; j++) {
+                    const prev = continuousMarkers[j];
+                    if (prev.timeEnd > current.time) {
+                        takenVoices.add(prev.voice);
+                    }
+                }
+                
+                let assignedVoice = 0;
+                while (takenVoices.has(assignedVoice)) {
+                    assignedVoice++;
+                }
+                current.voice = assignedVoice;
+            }
+        }
+        window.assignVoicesToContinuousMarkers = assignVoicesToContinuousMarkers;
+
+        // ── Bluetooth Latency Compensation ──
+        let btDelay = 0;
+        let btCompensateEnabled = false;
+
+        function toggleBtCompensate() {
+            btCompensateEnabled = !btCompensateEnabled;
+            document.getElementById('btCompensateSwitch').classList.toggle('on', btCompensateEnabled);
+            updateAudioDelay();
+        }
+        window.toggleBtCompensate = toggleBtCompensate;
+
+        const btDelaySlider = document.getElementById('btDelaySlider');
+        const btDelayInput = document.getElementById('btDelayInput');
+
+        if (btDelaySlider && btDelayInput) {
+            btDelaySlider.addEventListener('input', (e) => {
+                btDelay = parseInt(e.target.value) || 0;
+                btDelayInput.value = btDelay;
+                updateAudioDelay();
+            });
+
+            btDelayInput.addEventListener('change', (e) => {
+                btDelay = Math.max(0, parseInt(e.target.value) || 0);
+                btDelaySlider.value = Math.min(600, btDelay);
+                updateAudioDelay();
+            });
+        }
+
+        function applyBtDelayToExisting() {
+            if (btDelay <= 0) {
+                alert("Por favor, selecione um atraso maior que 0 ms para aplicar.");
+                return;
+            }
+            const offset = btDelay / 1000;
+            markers.forEach(m => {
+                m.time = Math.max(0, m.time - offset);
+                if (m.type === 'continuo') {
+                    m.timeEnd = Math.max(m.time, m.timeEnd - offset);
+                }
+            });
+            markers.sort((a, b) => a.time - b.time);
+            renderMarkers();
+            alert(`Compensação de -${btDelay}ms aplicada a todas as marcas existentes!`);
+        }
+        window.applyBtDelayToExisting = applyBtDelayToExisting;
+
+        function removeBtDelayFromExisting() {
+            if (btDelay <= 0) {
+                alert("Por favor, selecione um atraso maior que 0 ms.");
+                return;
+            }
+            const offset = btDelay / 1000;
+            markers.forEach(m => {
+                m.time = m.time + offset;
+                if (m.type === 'continuo') {
+                    m.timeEnd = m.timeEnd + offset;
+                }
+            });
+            markers.sort((a, b) => a.time - b.time);
+            renderMarkers();
+            alert(`Atraso de +${btDelay}ms adicionado a todas as marcas existentes!`);
+        }
+        window.removeBtDelayFromExisting = removeBtDelayFromExisting;
+
         // ── Markers ──
         btnAddMarker.addEventListener('click', () => {
             const nextNum = markers.filter(x => x.type === 'pontual').length + 1;
+            let markerTime = video.currentTime;
+            if (btCompensateEnabled) {
+                markerTime = Math.max(0, markerTime - (btDelay / 1000));
+            }
             const newMarker = {
                 id: Date.now(),
                 type: 'pontual',
-                time: video.currentTime,
+                time: markerTime,
                 label: `M${nextNum}`
             };
             markers.push(newMarker);
@@ -1370,7 +1588,8 @@
                 // Start recording
                 tempContinuousStart = video.currentTime;
                 const nextNum = markers.filter(m => m.type === 'continuo').length + 1;
-                btnContinuousMarker.textContent = `■ Parar Contínua (L${nextNum})`;
+                const defaultLabel = `C${nextNum}`;
+                btnContinuousMarker.textContent = `■ Parar Contínua (${defaultLabel})`;
                 btnContinuousMarker.style.background = '#d9534f'; // pulsing red
                 btnContinuousMarker.classList.add('recording');
             } else {
@@ -1393,13 +1612,22 @@
                     return;
                 }
 
+                let finalStart = start;
+                let finalEnd = end;
+                if (btCompensateEnabled) {
+                    const offset = btDelay / 1000;
+                    finalStart = Math.max(0, start - offset);
+                    finalEnd = Math.max(finalStart, end - offset);
+                }
+
                 const nextNum = markers.filter(m => m.type === 'continuo').length + 1;
+                const defaultLabel = `C${nextNum}`;
                 const newMarker = {
                     id: Date.now(),
                     type: 'continuo',
-                    time: start,
-                    timeEnd: end,
-                    label: `L${nextNum}`
+                    time: finalStart,
+                    timeEnd: finalEnd,
+                    label: defaultLabel
                 };
                 markers.push(newMarker);
                 markers.sort((a, b) => a.time - b.time);
@@ -1432,6 +1660,7 @@
                 markerListContinuousEl.innerHTML = '<p class="empty-state">Sem marcas contínuas.</p>';
             } else {
                 markerListContinuousEl.innerHTML = '';
+                assignVoicesToContinuousMarkers(continuousMarkers);
                 continuousMarkers.forEach(marker => renderMarkerItem(marker, markerListContinuousEl));
             }
         }
@@ -1451,6 +1680,13 @@
                     <button class="btn btn-sm btn-danger btn-delete-marker" style="width: auto;">✕</button>
                 `;
             } else {
+                const continuousMarkers = markers.filter(m => m.type === 'continuo');
+                assignVoicesToContinuousMarkers(continuousMarkers);
+                const currentMarkerObj = continuousMarkers.find(m => m.id === marker.id);
+                const voice = currentMarkerObj ? currentMarkerObj.voice : 0;
+                const noteInfo = getDiatonicNote(voice);
+                const noteName = `${noteInfo.step}${noteInfo.alter === -1 ? 'b' : ''}${noteInfo.octave}`;
+
                 item.innerHTML = `
                     <div class="marker-times-range" style="display: flex; flex-direction: column; gap: 2px; width: 120px;">
                         <div class="marker-times-row" style="display: flex; align-items: center; gap: 4px; width: 100%;">
@@ -1464,7 +1700,10 @@
                             <span class="marker-abs" style="font-size: 0.52rem; opacity: 0.7; width: 44px; text-align: right;">${formatAbsTime(marker.timeEnd)}</span>
                         </div>
                     </div>
-                    <input type="text" class="marker-input marker-label-input" value="${marker.label}" readonly placeholder="Nome" style="cursor: pointer;">
+                    <div style="display: flex; align-items: center; gap: 6px; width: 100%;">
+                        <input type="text" class="marker-input marker-label-input" value="${marker.label}" readonly placeholder="Nome" style="cursor: pointer; flex: 1; min-width: 30px;">
+                        <span style="font-size: 0.65rem; font-weight: bold; color: var(--accent); background: rgba(200, 127, 139, 0.15); padding: 2px 5px; border-radius: 4px; border: 1px solid rgba(200, 127, 139, 0.25); white-space: nowrap;" title="Nota reproduzida">${noteName}</span>
+                    </div>
                     <button class="btn btn-sm btn-danger btn-delete-marker" style="width: auto;">✕</button>
                 `;
             }
@@ -1495,18 +1734,36 @@
                 deleteMarker(marker.id);
             });
 
-            // Click handler for selection/deselection
+            // Click handler for selection/deselection (3-stage for continuous)
             const handleItemClick = (e) => {
                 if (editingMarkerId !== null) return;
                 
                 if (selectedMarkerId === marker.id) {
-                    selectedMarkerId = null;
-                    item.classList.remove('selected');
+                    if (marker.type === 'pontual') {
+                        selectedMarkerId = null;
+                        item.classList.remove('selected');
+                    } else {
+                        const stage = item.dataset.clickStage || "start";
+                        if (stage === "start") {
+                            video.currentTime = marker.timeEnd;
+                            item.dataset.clickStage = "end";
+                        } else {
+                            selectedMarkerId = null;
+                            item.classList.remove('selected');
+                            delete item.dataset.clickStage;
+                        }
+                    }
                 } else {
                     selectedMarkerId = marker.id;
                     video.currentTime = marker.time;
-                    document.querySelectorAll('.marker-item').forEach(el => el.classList.remove('selected'));
+                    document.querySelectorAll('.marker-item').forEach(el => {
+                        el.classList.remove('selected');
+                        delete el.dataset.clickStage;
+                    });
                     item.classList.add('selected');
+                    if (marker.type === 'continuo') {
+                        item.dataset.clickStage = "start";
+                    }
                 }
             };
             
@@ -1733,7 +1990,10 @@
             }
 
             // Function to generate tied notes XML
-            function getNotesXml(dur, isStartTied, isEndTied) {
+            function getNotesXml(dur, isStartTied, isEndTied, noteInfo) {
+                const step = noteInfo ? noteInfo.step : 'B';
+                const octave = noteInfo ? noteInfo.octave : 4;
+                const alter = noteInfo && noteInfo.alter !== undefined ? noteInfo.alter : null;
                 let remaining = dur;
                 let pieces = [];
                 while (remaining > 0) {
@@ -1758,8 +2018,8 @@
                     noteXml += `
       <note>
         <pitch>
-          <step>B</step>
-          <octave>4</octave>
+          <step>${step}</step>${alter !== null ? `\n          <alter>${alter}</alter>` : ''}
+          <octave>${octave}</octave>
         </pitch>
         <duration>${piece.dur}</duration>
         <voice>1</voice>
@@ -1873,15 +2133,38 @@
     </measure>`;
             }
 
-            // Generate Part 2 (Continuous)
+            // Generate Continuous Parts dynamically based on overlaps
             const continuousMarkers = markers.filter(m => m.type === 'continuo');
-            let p2Xml = '';
-            for (let mNum = 1; mNum <= numMeasures; mNum++) {
-                p2Xml += `
+            assignVoicesToContinuousMarkers(continuousMarkers);
+            const maxVoice = continuousMarkers.length > 0 ? continuousMarkers.reduce((max, cm) => Math.max(max, cm.voice), 0) : -1;
+            
+            // Build score-parts for continuous parts
+            let partListXml = `    <score-part id="P1">
+      <part-name>Pontuais</part-name>
+    </score-part>`;
+            
+            for (let v = 0; v <= maxVoice; v++) {
+                const pId = `P${v + 2}`;
+                const pName = `Contínua ${v + 1}`;
+                partListXml += `\n    <score-part id="${pId}">
+      <part-name>${pName}</part-name>
+    </score-part>`;
+            }
+
+            let partsXml = `  <part id="P1">${p1Xml}
+  </part>`;
+
+            for (let v = 0; v <= maxVoice; v++) {
+                const voiceMarkers = continuousMarkers.filter(cm => cm.voice === v);
+                let pVoiceXml = '';
+                const noteInfo = getDiatonicNote(v);
+                
+                for (let mNum = 1; mNum <= numMeasures; mNum++) {
+                    pVoiceXml += `
     <measure number="${mNum}">`;
 
-                if (mNum === 1) {
-                    p2Xml += `
+                    if (mNum === 1) {
+                        pVoiceXml += `
       <attributes>
         <divisions>${divisions}</divisions>
         <key>
@@ -1896,71 +2179,75 @@
           <line>2</line>
         </clef>
       </attributes>`;
-                }
+                    }
 
-                const StartLimit = (mNum - 1) * divisionsPerMeasure;
-                const EndLimit = mNum * divisionsPerMeasure;
+                    const StartLimit = (mNum - 1) * divisionsPerMeasure;
+                    const EndLimit = mNum * divisionsPerMeasure;
 
-                // Build status array for each division in this measure
-                const status = new Array(divisionsPerMeasure).fill(null);
-                continuousMarkers.forEach(cm => {
-                    const gStart = Math.round(cm.time / secondsPerDivision);
-                    const gEnd = Math.round(cm.timeEnd / secondsPerDivision);
-                    for (let d = 0; d < divisionsPerMeasure; d++) {
-                        const gDiv = StartLimit + d;
-                        if (gDiv >= gStart && gDiv < gEnd) {
-                            status[d] = cm;
+                    // Build status array for each division in this measure for this voice
+                    const status = new Array(divisionsPerMeasure).fill(null);
+                    voiceMarkers.forEach(cm => {
+                        const gStart = Math.round(cm.time / secondsPerDivision);
+                        const gEnd = Math.round(cm.timeEnd / secondsPerDivision);
+                        for (let d = 0; d < divisionsPerMeasure; d++) {
+                            const gDiv = StartLimit + d;
+                            if (gDiv >= gStart && gDiv < gEnd) {
+                                status[d] = cm;
+                            }
+                        }
+                    });
+
+                    // Group status into segments
+                    const segments = [];
+                    let currentStatus = status[0];
+                    let startDiv = 0;
+                    for (let d = 1; d < divisionsPerMeasure; d++) {
+                        if (status[d] !== currentStatus) {
+                            segments.push({ start: startDiv, duration: d - startDiv, status: currentStatus });
+                            startDiv = d;
+                            currentStatus = status[d];
                         }
                     }
-                });
+                    segments.push({ start: startDiv, duration: divisionsPerMeasure - startDiv, status: currentStatus });
 
-                // Group status into segments
-                const segments = [];
-                let currentStatus = status[0];
-                let startDiv = 0;
-                for (let d = 1; d < divisionsPerMeasure; d++) {
-                    if (status[d] !== currentStatus) {
-                        segments.push({ start: startDiv, duration: d - startDiv, status: currentStatus });
-                        startDiv = d;
-                        currentStatus = status[d];
-                    }
-                }
-                segments.push({ start: startDiv, duration: divisionsPerMeasure - startDiv, status: currentStatus });
-
-                // Generate XML for each segment
-                segments.forEach(seg => {
-                    if (seg.status === null) {
-                        p2Xml += getRestsXml(seg.duration);
-                    } else {
-                        const marker = seg.status;
-                        const gStart = Math.round(marker.time / secondsPerDivision);
-                        const gEnd = Math.round(marker.timeEnd / secondsPerDivision);
-                        
-                        // If segment starts at the absolute beginning of the marker, write words direction
-                        if (StartLimit + seg.start === gStart) {
-                            p2Xml += `
+                    // Generate XML for each segment
+                    segments.forEach(seg => {
+                        if (seg.status === null) {
+                            pVoiceXml += getRestsXml(seg.duration);
+                        } else {
+                            const marker = seg.status;
+                            const gStart = Math.round(marker.time / secondsPerDivision);
+                            const gEnd = Math.round(marker.timeEnd / secondsPerDivision);
+                            
+                            // If segment starts at the absolute beginning of the marker, write words direction
+                            if (StartLimit + seg.start === gStart) {
+                                pVoiceXml += `
       <direction placement="above">
         <direction-type>
           <words>${marker.label}</words>
         </direction-type>
       </direction>`;
+                            }
+
+                            const isStartTied = gStart < StartLimit + seg.start;
+                            const isEndTied = gEnd > StartLimit + seg.start + seg.duration;
+                            pVoiceXml += getNotesXml(seg.duration, isStartTied, isEndTied, noteInfo);
                         }
+                    });
 
-                        const isStartTied = gStart < StartLimit + seg.start;
-                        const isEndTied = gEnd > StartLimit + seg.start + seg.duration;
-                        p2Xml += getNotesXml(seg.duration, isStartTied, isEndTied);
-                    }
-                });
-
-                if (mNum === numMeasures) {
-                    p2Xml += `
+                    if (mNum === numMeasures) {
+                        pVoiceXml += `
       <barline location="right">
         <bar-style>light-heavy</bar-style>
       </barline>`;
-                }
+                    }
 
-                p2Xml += `
+                    pVoiceXml += `
     </measure>`;
+                }
+                
+                partsXml += `\n  <part id="P${v + 2}">${pVoiceXml}
+  </part>`;
             }
 
             // Assemble final XML doc
@@ -1971,17 +2258,9 @@
     <work-title>${projectNameInput.value || 'Projeto GL'}</work-title>
   </work>
   <part-list>
-    <score-part id="P1">
-      <part-name>Sync Track</part-name>
-    </score-part>
-    <score-part id="P2">
-      <part-name>Sync Track Continuo</part-name>
-    </score-part>
+${partListXml}
   </part-list>
-  <part id="P1">${p1Xml}
-  </part>
-  <part id="P2">${p2Xml}
-  </part>
+${partsXml}
 </score-partwise>`;
 
             const blob = new Blob([xml], { type: 'application/vnd.recordare.musicxml+xml' });
