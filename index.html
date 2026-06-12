@@ -1180,7 +1180,7 @@
                             </li>
                             <li style="margin-bottom: 5px;"><strong>Som das Marcas</strong>: Reproduz cliques nas pontuais e notas musicais diatônicas sobrepostas (a partir de C4, E4, G4, Bb4) nas marcas contínuas.</li>
                             <li style="margin-bottom: 5px;"><strong>Edição</strong>: Um clique simples na marca vai para o início dela (2º clique vai para o fim da contínua; 3º clique desmarca). Clique duplo permite editar o nome e a contagem musical.</li>
-                            <li style="margin-bottom: 5px;"><strong>Exportar</strong>: Baixe em formato MusicXML para abrir no MuseScore, organizando as marcas contínuas em pautas separadas ("Contínua 1" a "Contínua 4") de acordo com as notas atribuídas.</li>
+                            <li style="margin-bottom: 5px;"><strong>Exportar</strong>: Baixe em formato MusicXML para abrir no MuseScore, organizando as marcas contínuas em pautas separadas ("Contínuas 1" a "Contínuas 3") de acordo com as notas atribuídas.</li>
                         </ol>
 
                         <p style="margin: 10px 0 5px 0; font-weight: bold; color: #fff;">Atalhos de Teclado:</p>
@@ -1616,7 +1616,7 @@
             if (marker.type === 'pontual') {
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(800, soundAudioCtx.currentTime);
-                gainNode.gain.setValueAtTime(0.8, soundAudioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.4, soundAudioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.001, soundAudioCtx.currentTime + 0.08);
                 osc.start();
                 osc.stop(soundAudioCtx.currentTime + 0.08);
@@ -1626,17 +1626,19 @@
                 const fadeInTime = Math.min(0.1, duration * 0.1);
                 const fadeOutTime = Math.min(0.25, duration * 0.2);
                 
-                // Find index of this continuous marker to play the corresponding diatonic frequency
-                const continuousMarkers = markers.filter(m => m.type === 'continuo').sort((a, b) => a.time - b.time);
-                const cmIndex = continuousMarkers.findIndex(m => m.id === marker.id);
-                const noteInfo = getDiatonicNote(cmIndex >= 0 ? cmIndex : 0);
+                // Calculate voice based on active overlaps to determine correct pitch
+                const continuousMarkers = markers.filter(m => m.type === 'continuo');
+                assignVoicesToContinuousMarkers(continuousMarkers);
+                const currentMarkerObj = continuousMarkers.find(m => m.id === marker.id);
+                const voice = currentMarkerObj ? currentMarkerObj.voice : 0;
+                const noteInfo = getDiatonicNote(voice);
 
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(noteInfo.freq, soundAudioCtx.currentTime);
                 
                 gainNode.gain.setValueAtTime(0, soundAudioCtx.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0.4, soundAudioCtx.currentTime + fadeInTime);
-                gainNode.gain.setValueAtTime(0.4, soundAudioCtx.currentTime + duration - fadeOutTime);
+                gainNode.gain.linearRampToValueAtTime(0.15, soundAudioCtx.currentTime + fadeInTime);
+                gainNode.gain.setValueAtTime(0.15, soundAudioCtx.currentTime + duration - fadeOutTime);
                 gainNode.gain.linearRampToValueAtTime(0.001, soundAudioCtx.currentTime + duration);
                 
                 osc.start();
@@ -1877,7 +1879,7 @@
         btnAddMarker.addEventListener('click', () => {
             const nextNum = markers.filter(x => x.type === 'pontual').length + 1;
             let markerTime = appPlayer.currentTime;
-            if (btCompensateEnabled) {
+            if (btCompensateEnabled && !appPlayer.paused) {
                 markerTime = Math.max(0, markerTime - (btDelay / 1000));
             }
             const newMarker = {
@@ -1888,7 +1890,7 @@
             };
             markers.push(newMarker);
             markers.sort((a, b) => a.time - b.time);
-            selectedMarkerId = newMarker.id; // Automatically select the newly created marker
+            selectedMarkerId = null; // Do not automatically select
             renderMarkers();
         });
 
@@ -1896,7 +1898,11 @@
         function toggleContinuousMarker() {
             if (tempContinuousStart === null) {
                 // Start recording
-                tempContinuousStart = appPlayer.currentTime;
+                let startTime = appPlayer.currentTime;
+                if (btCompensateEnabled && !appPlayer.paused) {
+                    startTime = Math.max(0, startTime - (btDelay / 1000));
+                }
+                tempContinuousStart = startTime;
                 const nextNum = markers.filter(m => m.type === 'continuo').length + 1;
                 const defaultLabel = `C${nextNum}`;
                 btnContinuousMarker.textContent = `■ Parar Contínua (${defaultLabel})`;
@@ -1906,6 +1912,9 @@
                 // Stop recording
                 let start = tempContinuousStart;
                 let end = appPlayer.currentTime;
+                if (btCompensateEnabled && !appPlayer.paused) {
+                    end = Math.max(0, end - (btDelay / 1000));
+                }
                 tempContinuousStart = null;
                 btnContinuousMarker.textContent = '+ Contínua';
                 btnContinuousMarker.style.background = '#c85a3c'; // terracotta
@@ -1922,26 +1931,18 @@
                     return;
                 }
 
-                let finalStart = start;
-                let finalEnd = end;
-                if (btCompensateEnabled) {
-                    const offset = btDelay / 1000;
-                    finalStart = Math.max(0, start - offset);
-                    finalEnd = Math.max(finalStart, end - offset);
-                }
-
                 const nextNum = markers.filter(m => m.type === 'continuo').length + 1;
                 const defaultLabel = `C${nextNum}`;
                 const newMarker = {
                     id: Date.now(),
                     type: 'continuo',
-                    time: finalStart,
-                    timeEnd: finalEnd,
+                    time: start,
+                    timeEnd: end,
                     label: defaultLabel
                 };
                 markers.push(newMarker);
                 markers.sort((a, b) => a.time - b.time);
-                selectedMarkerId = newMarker.id; // Automatically select
+                selectedMarkerId = null; // Do not automatically select
                 renderMarkers();
             }
         }
@@ -2455,7 +2456,7 @@
             
             for (let v = 0; v <= maxVoice; v++) {
                 const pId = `P${v + 2}`;
-                const pName = `Contínua ${v + 1}`;
+                const pName = `Contínuas ${v + 1}`;
                 partListXml += `\n    <score-part id="${pId}">
       <part-name>${pName}</part-name>
     </score-part>`;
@@ -2635,7 +2636,7 @@ ${partsXml}
                 const parts = xmlDoc.querySelectorAll('part');
                 parts.forEach((part, partIndex) => {
                     const partId = part.getAttribute('id');
-                    const isContinuousPart = partIndex === 1 || partId === 'P2';
+                    const isContinuousPart = partIndex >= 1;
                     const measures = part.querySelectorAll('measure');
                     
                     let activeContinuous = null; // { label, startDiv, measureNum }
@@ -2668,6 +2669,15 @@ ${partsXml}
                                     if (!isRest && !isChord && !grace && dur > 0) {
                                         const tieStartEl = child.querySelector('tie[type="start"]');
                                         const isTiedToNext = tieStartEl !== null;
+                                        
+                                        if (!activeContinuous) {
+                                            const count = markers.filter(m => m.type === 'continuo').length + 1;
+                                            activeContinuous = {
+                                                label: `C${count}`,
+                                                startDiv: currentDiv,
+                                                measureNum: measureNum
+                                            };
+                                        }
                                         
                                         if (activeContinuous) {
                                             if (!isTiedToNext) {
