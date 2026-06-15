@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GL Sync-in-Tap</title>
+    <!-- jsPDF libraries for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <link rel="icon" type="image/svg+xml"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='bgGrad' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%2348b473'/><stop offset='1' stop-color='%23BCDFB9'/></linearGradient><linearGradient id='iconGrad' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%231b3022'/><stop offset='1' stop-color='%232c3e50'/></linearGradient></defs><rect width='100' height='100' rx='28' fill='url(%23bgGrad)'/><circle cx='50' cy='50' r='38' fill='none' stroke='rgba(27,48,34,0.12)' stroke-width='4'/><path d='M 50 12 A 38 38 0 0 1 88 50' fill='none' stroke='url(%23iconGrad)' stroke-width='6' stroke-linecap='round'/><path d='M 50 88 A 38 38 0 0 1 12 50' fill='none' stroke='%231b3022' stroke-width='6' stroke-linecap='round'/><rect x='34' y='42' width='6' height='16' rx='3' fill='%231b3022'/><rect x='44' y='30' width='6' height='40' rx='3' fill='%231b3022'/><rect x='54' y='36' width='6' height='28' rx='3' fill='url(%23iconGrad)'/><rect x='64' y='46' width='6' height='8' rx='3' fill='url(%23iconGrad)'/></svg>">
     <style>
@@ -903,10 +906,113 @@
             padding: 1px 4px;
             white-space: nowrap;
         }
+
+        /* ── Custom Toast Notification ── */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            pointer-events: auto;
+            min-width: 280px;
+            max-width: 400px;
+            background: rgba(30, 30, 36, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-active);
+            color: var(--text);
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s, margin 0.3s;
+            opacity: 0;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Types */
+        .toast-info .toast-icon {
+            background: rgba(45, 138, 78, 0.15);
+            color: var(--primary);
+        }
+        .toast-info {
+            border-left: 4px solid var(--primary);
+        }
+
+        .toast-success .toast-icon {
+            background: rgba(45, 138, 78, 0.2);
+            color: #48b473;
+        }
+        .toast-success {
+            border-left: 4px solid #48b473;
+        }
+
+        .toast-warning .toast-icon {
+            background: rgba(229, 193, 88, 0.15);
+            color: #e5c158;
+        }
+        .toast-warning {
+            border-left: 4px solid #e5c158;
+        }
+
+        .toast-error .toast-icon {
+            background: rgba(200, 120, 100, 0.2);
+            color: var(--accent);
+        }
+        .toast-error {
+            border-left: 4px solid var(--accent);
+        }
+
+        .toast-message {
+            font-size: 0.82rem;
+            font-weight: 500;
+            line-height: 1.4;
+            flex-grow: 1;
+        }
+
+        .toast-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 0 4px;
+            transition: color 0.15s;
+        }
+
+        .toast-close:hover {
+            color: #fff;
+        }
     </style>
 </head>
 
 <body>
+    <div class="toast-container" id="toastContainer"></div>
 
     <div class="app-wrapper layout-geral" id="appWrapper">
 
@@ -1064,8 +1170,19 @@
                             <label class="field-label">Importar MusicXML</label>
                             <input type="file" id="xmlUpload" accept=".xml,.musicxml">
                         </div>
-                        <div>
-                            <button class="btn btn-outline" id="btnExportXml" style="width: 100%;">📤 Exportar XML</button>
+                        <div class="btn-row">
+                            <button class="btn btn-outline" id="btnExportXml">📤 Exportar XML</button>
+                            <button class="btn btn-outline" id="btnExportPdf">📄 Exportar PDF</button>
+                        </div>
+                        <div style="border-top: 1px solid var(--border); margin: 8px 0 0 0; padding-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+                            <label class="field-label">Projeto (.txt)</label>
+                            <button class="btn btn-sm btn-outline" id="btnSaveProject">💾 Salvar Projeto</button>
+                            <div class="btn-row">
+                                <button class="btn btn-sm btn-outline" id="btnOpenProjectTrigger">📂 Abrir Projeto</button>
+                                <button class="btn btn-sm btn-outline" id="btnImportMarkersTrigger">📥 Importar Marcas</button>
+                            </div>
+                            <input type="file" id="projectFileLoad" accept=".txt" style="display: none;">
+                            <input type="file" id="projectMarkersImport" accept=".txt" style="display: none;">
                         </div>
                     </div>
                 </div>
@@ -1188,7 +1305,7 @@
                         </p>
                         <p style="font-weight: bold; color: #fff; margin-top: 0.5rem; margin-bottom: 0.4rem;">Como usar:</p>
                         <ol style="padding-left: 1rem; margin: 0 0 10px 0; color: #bbb;">
-                            <li style="margin-bottom: 5px;"><strong>Carregar Vídeo</strong>: Selecione um arquivo local ou use um link do YouTube ou URL direta no painel "Arquivo".</li>
+                            <li style="margin-bottom: 5px;"><strong>Carregar Vídeo</strong>: Selecione um arquivo local ou use um link do YouTube ou URL direta no painel "Arquivo". Por padrão, um vídeo demonstrativo já é carregado ao abrir o app.</li>
                             <li style="margin-bottom: 5px;"><strong>Marcar Sincronismo</strong>:
                                 <ul style="padding-left: 1rem; margin: 3px 0;">
                                     <li>Use <strong>+ Pontual</strong> (Atalho: <kbd>M</kbd>) para batidas ou momentos únicos.</li>
@@ -1197,7 +1314,8 @@
                             </li>
                             <li style="margin-bottom: 5px;"><strong>Som das Marcas</strong>: Reproduz cliques nas pontuais e notas musicais diatônicas sobrepostas (a partir de C4, E4, G4, Bb4) nas marcas contínuas.</li>
                             <li style="margin-bottom: 5px;"><strong>Edição</strong>: Um clique simples na marca vai para o início dela (2º clique vai para o fim da contínua; 3º clique desmarca). Clique duplo permite editar o nome e a contagem musical.</li>
-                            <li style="margin-bottom: 5px;"><strong>Exportar</strong>: Baixe em formato MusicXML para abrir no MuseScore, organizando as marcas contínuas em pautas separadas ("Contínuas 1" a "Contínuas 3") de acordo com as notas atribuídas.</li>
+                            <li style="margin-bottom: 5px;"><strong>Exportar</strong>: Baixe em formato MusicXML para abrir no MuseScore, ou gere um <strong>Relatório em PDF</strong> formatado com a tabela de marcações, nome do projeto, data e usuário.</li>
+                            <li style="margin-bottom: 5px;"><strong>Gerenciar Projetos (.txt)</strong>: Use <strong>Salvar Projeto</strong> para baixar todo o seu trabalho (BPM, compasso, link do vídeo e marcas) em um arquivo de texto. Use <strong>Abrir Projeto</strong> para restaurar um trabalho salvo ou <strong>Importar Marcas</strong> para mesclar marcações de outro arquivo mantendo as atuais intactas.</li>
                         </ol>
 
                         <p style="margin: 10px 0 5px 0; font-weight: bold; color: #fff;">Atalhos de Teclado:</p>
@@ -1257,12 +1375,74 @@
     </div>
 
     <script>
+        // ── Custom Toast Notification System ──
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+
+            let icon = 'ℹ️';
+            if (type === 'success') icon = '✅';
+            if (type === 'warning') icon = '⚠️';
+            if (type === 'error') icon = '❌';
+
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <div class="toast-message">${message}</div>
+                <button class="toast-close">✕</button>
+            `;
+
+            container.appendChild(toast);
+
+            toast.offsetHeight;
+            toast.classList.add('show');
+
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.addEventListener('click', () => {
+                removeToast(toast);
+            });
+
+            const autoDismiss = setTimeout(() => {
+                removeToast(toast);
+            }, 4000);
+
+            function removeToast(el) {
+                clearTimeout(autoDismiss);
+                el.classList.remove('show');
+                el.addEventListener('transitionend', function handler() {
+                    el.removeEventListener('transitionend', handler);
+                    el.remove();
+                });
+            }
+        }
+
+        window.alert = function(msg) {
+            let type = 'info';
+            const lower = msg.toLowerCase();
+            if (lower.includes('erro') || lower.includes('inválido') || lower.includes('negada')) {
+                type = 'error';
+            } else if (lower.includes('sucesso') || lower.includes('aplicada') || lower.includes('adicionado') || lower.includes('importadas')) {
+                type = 'success';
+            } else if (lower.includes('atenção') || lower.includes('aviso') || lower.includes('selecione') || lower.includes('duração')) {
+                type = 'warning';
+            }
+            showToast(msg, type);
+        };
+
         // ── DOM refs ──
         const wrapper = document.getElementById('appWrapper');
         const video = document.getElementById('videoPlayer');
         const videoUpload = document.getElementById('videoUpload');
         const xmlUpload = document.getElementById('xmlUpload');
         const btnExportXml = document.getElementById('btnExportXml');
+        const btnExportPdf = document.getElementById('btnExportPdf');
+        const btnSaveProject = document.getElementById('btnSaveProject');
+        const btnOpenProjectTrigger = document.getElementById('btnOpenProjectTrigger');
+        const projectFileLoad = document.getElementById('projectFileLoad');
+        const btnImportMarkersTrigger = document.getElementById('btnImportMarkersTrigger');
+        const projectMarkersImport = document.getElementById('projectMarkersImport');
         const videoNameTag = document.getElementById('videoNameTag');
         const bpmInput = document.getElementById('bpmInput');
         const btnBpmMinus = document.getElementById('btnBpmMinus');
@@ -2583,6 +2763,218 @@ ${partsXml}
             a.download = (projectNameInput.value || 'projeto_gl') + '.musicxml';
             a.click();
             URL.revokeObjectURL(url);
+        });
+
+        btnExportPdf.addEventListener('click', function () {
+            if (markers.length === 0) {
+                alert("Não há marcas registradas para exportar!");
+                return;
+            }
+
+            const userName = prompt("Digite seu nome para o relatório:", "Usuário") || "Usuário";
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Titulo principal
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.setTextColor(45, 138, 78); // Verde principal do app
+            doc.text("GL Sync-in-Tap", 14, 20);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
+            doc.setTextColor(100, 100, 100);
+            doc.text("Relatório de Sincronização e Marcações", 14, 26);
+
+            // Linha divisória
+            doc.setDrawColor(220, 220, 220);
+            doc.line(14, 30, 196, 30);
+
+            // Metadados
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.setTextColor(50, 50, 50);
+            doc.text("Nome do Projeto:", 14, 38);
+            doc.text("Data de Exportação:", 14, 44);
+            doc.text("Usuário:", 14, 50);
+
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(80, 80, 80);
+            doc.text(projectNameInput.value || "Projeto GL", 55, 38);
+            doc.text(new Date().toLocaleString('pt-BR'), 55, 44);
+            doc.text(userName, 55, 50);
+
+            // Dados da tabela
+            const tableData = markers.map(m => {
+                const isPunctual = m.type === 'pontual';
+                const typeLabel = isPunctual ? 'Pontual' : 'Contínua';
+                const musicalTime = isPunctual 
+                    ? calculateMusicalTime(m.time) 
+                    : `${calculateMusicalTime(m.time)} - ${calculateMusicalTime(m.timeEnd)}`;
+                const absoluteTime = isPunctual 
+                    ? formatAbsTime(m.time) 
+                    : `${formatAbsTime(m.time)} - ${formatAbsTime(m.timeEnd)}`;
+                return [
+                    typeLabel,
+                    m.label || '',
+                    musicalTime,
+                    absoluteTime
+                ];
+            });
+
+            doc.autoTable({
+                startY: 56,
+                head: [["Tipo de Marca", "Nome / ID", "Tempo Musical (C|T|S)", "Tempo Absoluto (M:S:F)"]],
+                body: tableData,
+                theme: 'striped',
+                headStyles: { fillColor: [45, 138, 78], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { font: "helvetica", fontSize: 9 },
+                columnStyles: {
+                    0: { cellWidth: 30 },
+                    1: { cellWidth: 35 },
+                    2: { cellWidth: 65 },
+                    3: { cellWidth: 50 }
+                }
+            });
+
+            doc.save(`${(projectNameInput.value || 'projeto_gl').toLowerCase().replace(/\s+/g, '_')}_marcas.pdf`);
+        });
+
+        // ── Salvar Projeto (.txt) ──
+        btnSaveProject.addEventListener('click', function () {
+            const projectState = {
+                version: "1.0",
+                projectName: projectNameInput.value,
+                bpm: parseFloat(bpmInput.value) || 120,
+                beatsPerMeasure: parseInt(beatsInput.value) || 4,
+                beatUnit: parseInt(beatUnitInput.value) || 4,
+                btDelay: btDelay,
+                btCompensateEnabled: btCompensateEnabled,
+                videoUrl: videoUrlInput.value || "",
+                videoName: currentVideoName || "",
+                markers: markers
+            };
+
+            const dataStr = JSON.stringify(projectState, null, 2);
+            const blob = new Blob([dataStr], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (projectNameInput.value || 'projeto_gl').toLowerCase().replace(/\s+/g, '_') + '_projeto.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        // ── Abrir Projeto (.txt) ──
+        btnOpenProjectTrigger.addEventListener('click', () => {
+            projectFileLoad.click();
+        });
+
+        projectFileLoad.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    
+                    if (!data.markers) {
+                        alert("Arquivo inválido. Formato de projeto não reconhecido.");
+                        return;
+                    }
+
+                    if (data.projectName) projectNameInput.value = data.projectName;
+                    if (data.bpm) bpmInput.value = data.bpm;
+                    if (data.beatsPerMeasure) beatsInput.value = data.beatsPerMeasure;
+                    if (data.beatUnit) beatUnitInput.value = data.beatUnit;
+                    
+                    if (typeof data.btDelay !== 'undefined') {
+                        btDelay = data.btDelay;
+                        const slider = document.getElementById('btDelaySlider');
+                        const input = document.getElementById('btDelayInput');
+                        if (slider) slider.value = Math.min(600, btDelay);
+                        if (input) input.value = btDelay;
+                    }
+                    if (typeof data.btCompensateEnabled !== 'undefined') {
+                        btCompensateEnabled = data.btCompensateEnabled;
+                        const sw = document.getElementById('btCompensateSwitch');
+                        if (sw) sw.classList.toggle('on', btCompensateEnabled);
+                        updateAudioDelay();
+                    }
+
+                    if (data.videoUrl) {
+                        videoUrlInput.value = data.videoUrl;
+                        const ytId = getYoutubeId(data.videoUrl);
+                        if (ytId) {
+                            loadYoutubeVideo(ytId);
+                        } else {
+                            const name = data.videoName || data.videoUrl.substring(data.videoUrl.lastIndexOf('/') + 1) || 'video_link';
+                            loadNativeVideo(data.videoUrl, name);
+                        }
+                    } else if (data.videoName) {
+                        currentVideoName = data.videoName;
+                        videoNameTag.style.display = 'block';
+                        videoNameTag.textContent = '📼 ' + currentVideoName;
+                        statusPill.classList.add('active');
+                        statusText.textContent = currentVideoName.replace(/\.[^.]+$/, '');
+                    }
+
+                    markers = data.markers;
+                    markers.sort((a, b) => a.time - b.time);
+                    selectedMarkerId = null;
+                    editingMarkerId = null;
+                    renderMarkers();
+                    
+                    alert("Projeto aberto com sucesso!");
+                } catch (err) {
+                    alert("Erro ao ler o arquivo de projeto: " + err.message);
+                }
+                projectFileLoad.value = '';
+            };
+            reader.readAsText(file);
+        });
+
+        // ── Importar Marcas de Projeto (.txt) ──
+        btnImportMarkersTrigger.addEventListener('click', () => {
+            projectMarkersImport.click();
+        });
+
+        projectMarkersImport.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    
+                    if (!data.markers || !Array.isArray(data.markers)) {
+                        alert("Arquivo inválido. Formato de projeto não reconhecido.");
+                        return;
+                    }
+
+                    let baseId = Date.now();
+                    const imported = data.markers.map((m, idx) => ({
+                        ...m,
+                        id: baseId + idx
+                    }));
+
+                    markers = markers.concat(imported);
+                    markers.sort((a, b) => a.time - b.time);
+                    
+                    selectedMarkerId = null;
+                    editingMarkerId = null;
+                    renderMarkers();
+                    
+                    alert(`${imported.length} marcas importadas e mescladas com sucesso!`);
+                } catch (err) {
+                    alert("Erro ao ler o arquivo de marcas: " + err.message);
+                }
+                projectMarkersImport.value = '';
+            };
+            reader.readAsText(file);
         });
 
         xmlUpload.addEventListener('change', function (e) {
