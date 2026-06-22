@@ -14,10 +14,10 @@ Este repositório contém uma aplicação front-end em arquivo único (`index.ht
 
 ## Estrutura principal
 
-- `/home/runner/work/gl-sync-video-in-tap/gl-sync-video-in-tap/index.html` — aplicação principal (HTML, CSS e JavaScript);
-- `/home/runner/work/gl-sync-video-in-tap/gl-sync-video-in-tap/meu-exemplo-de-marcas.musicxml` — exemplo de arquivo MusicXML;
-- `/home/runner/work/gl-sync-video-in-tap/gl-sync-video-in-tap/Gl-Sync-in-tap.mp4` — vídeo de exemplo;
-- `/home/runner/work/gl-sync-video-in-tap/gl-sync-video-in-tap/parede.png` — imagem usada na interface.
+- `index.html` — aplicação principal (HTML, CSS e JavaScript);
+- `meu-exemplo-de-marcas.musicxml` — exemplo de arquivo MusicXML;
+- `Gl-Sync-in-tap.mp4` — vídeo de exemplo;
+- `parede.png` — imagem usada na interface.
 
 ## Como executar
 
